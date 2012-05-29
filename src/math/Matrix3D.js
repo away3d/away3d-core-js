@@ -16,17 +16,79 @@ function()
         m031, m032, m033, m034,
         m041, m042, m043, m044;
 
+
+    Matrix3D.Translation = function(x, y, z, mtx)
+    {
+        mtx = mtx || new Matrix3D();
+        mtx.data[0] = 1;
+        mtx.data[5] = 1;
+        mtx.data[10] = 1;
+        mtx.data[12] = x;
+        mtx.data[13] = y;
+        mtx.data[14] = z;
+
+        return mtx;
+    };
+
+    Matrix3D.Scale = function(x, y, z, mtx)
+    {
+        mtx = mtx || new Matrix3D();
+        mtx.data[0] = x;
+        mtx.data[5] = y;
+        mtx.data[10] = z;
+
+        return mtx;
+    };
+
+    Matrix3D.Rotation = function(x, y, z, mtx)
+    {
+        // Optimize this
+        var rx = new Matrix3D(),
+            ry = new Matrix3D(),
+            rz = new Matrix3D(),
+            mtx = mtx || new Matrix3D();
+
+        rx.data[0] = 1;
+        rx.data[5] = Math.cos(x);
+        rx.data[6] = Math.sin(x);
+        rx.data[9] = -rx.data[6];
+        rx.data[10] = rx.data[5];
+        rx.data[15] = 1;
+
+        ry.data[0] = Math.cos(y);
+        ry.data[2] = -Math.sin(y);
+        ry.data[5] = 1;
+        ry.data[8] = -ry.data[2];
+        ry.data[10] = ry.data[0];
+        ry.data[15] = 1;
+
+        rz.data[0] = Math.cos(z);
+        rz.data[1] = Math.sin(z);
+        rz.data[4] = -rz.data[1];
+        rz.data[5] = rz.data[0];
+        rz.data[10] = 1;
+        rz.data[15] = 1;
+
+        mtx.mul(rx, ry);
+        mtx.mul(mtx, rz);
+
+        return mtx;
+    };
+
     Matrix3D.prototype.mul = function(m0, m1)
     {
-        var i = 4;
+        var md0 = (m0==this)? m0.data.slice() : m0.data,
+            md1 = (m1==this)? m1.data.slice() : m1.data,
+            i = 4;
+
         while (i-->0) {
             var j = 4;
             while (j-->0) {
                 this.data[i*4+j] = 
-                    m0.data[j*4+0] * m1.data[0*4+i] + 
-                    m0.data[j*4+1] * m1.data[1*4+i] + 
-                    m0.data[j*4+2] * m1.data[2*4+i] + 
-                    m0.data[j*4+3] * m1.data[3*4+i];
+                    md0[j*4+0] * md1[0*4+i] + 
+                    md0[j*4+1] * md1[1*4+i] + 
+                    md0[j*4+2] * md1[2*4+i] + 
+                    md0[j*4+3] * md1[3*4+i];
             }
         };
     };
