@@ -11,8 +11,11 @@ function()
     {
         var code = [
             'attribute vec3 aVertexPosition;',
+            'uniform mat4 uTransform;',
+            'uniform mat4 uProjection;',
             'void main(void) {',
-            '  gl_Position = vec4(aVertexPosition, 1.0);',
+            '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
+            //'  gl_Position = uTransform * vec4(aVertexPosition, 1.0);',
             '}'
         ].join('\n');
 
@@ -39,14 +42,16 @@ function()
     };
 
 
-    WebGLRenderer.prototype.render = function(scene)
+    WebGLRenderer.prototype.render = function(view)
     {
-        var gl = this.gl;
+        var gl = this.gl,
+            scene = view.scene,
+            pm = view.camera.getViewProjection(view.$.aspectRatio);
 
         var renderables = []
         scene.traverse(renderables);
 
-        gl.viewport(0, 0, 960, 540);
+        gl.viewport(0, 0, view.$.width, view.$.height);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -66,6 +71,12 @@ function()
             program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
             gl.enableVertexAttribArray(program.aVertexPosition);
             gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+
+            program.uTransform = gl.getUniformLocation(program, 'uTransform');
+            gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.transform.data));
+
+            program.uProjection = gl.getUniformLocation(program, 'uProjection');
+            gl.uniformMatrix4fv(program.uProjection, false, new Float32Array(pm.data));
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.getIndexBuffer(gl));
             gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);

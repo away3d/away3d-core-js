@@ -1,11 +1,11 @@
-away3d.module('away3d.Object3D', null,
+away3d.module('away3d.Object3D', [
+    'away3d.Matrix3D',
+],
 function()
 {
     var Object3D = function()
     {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        this.transform = new away3d.Matrix3D();
 
         this.parent = null;
         this.children = [];
