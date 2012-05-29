@@ -21,14 +21,26 @@ function()
     };
 
 
-    View3D.prototype.setDimensions = function(w, h)
-    {
-        this.$.width = w;
-        this.$.height = h;
-        this.$.aspectRatio = w/h;
-        this.canvas.setAttribute('width', w);
-        this.canvas.setAttribute('height', h);
-    };
+    Object.defineProperty(View3D.prototype, 'width', {
+        get: function() {
+            return this.$.width;
+        },
+        set: function(value) {
+            this.$.width = value;
+            this.$.aspectRatio = this.$.width / this.$.height;
+        }
+    });
+        
+
+    Object.defineProperty(View3D.prototype, 'height', {
+        get: function() {
+            return this.$.height;
+        },
+        set: function(value) {
+            this.$.height = value;
+            this.$.aspectRatio = this.$.width / this.$.height;
+        }
+    });
 
 
     View3D.prototype.render = function()
