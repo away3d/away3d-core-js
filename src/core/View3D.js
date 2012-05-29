@@ -10,6 +10,7 @@ function()
         this.canvas = canvas || document.createElement('canvas');
         this.renderer = new away3d.WebGLRenderer(this.canvas);
         this.camera = new away3d.Camera3D();
+        this.camera.z = -1000;
         this.scene = new away3d.Scene3D();
 
         // "Private" variables
