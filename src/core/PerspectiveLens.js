@@ -29,7 +29,7 @@ function()
         pm.data[5] = this.near / ymax;
         pm.data[10] = -this.far / (this.far-this.near);
         pm.data[11] = 1;
-        pm.data[14] = -2*this.far*this.near / (this.far-this.near);
+        pm.data[14] = -this.near * pm.data[10];
         pm.data[15] = 0;
 
         return pm;
