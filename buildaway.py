@@ -206,24 +206,24 @@ class BuildOpts(object):
             elif opt[0] == '-o':
                 self.output = opt[1]
 
+    def output_as_file(self):
+        if self.output is None:
+            return sys.stdout
+        else:
+            return open(self.output, 'w')
 
 
-def get_output_file(output):
-    if output is None:
-        return sys.stdout
-    else:
-        return open(output, 'w')
 
 def listdep(graph, opts):
     "List module dependencies in order of dependency."
-    output = get_output_file(opts.output)
+    output = opts.output_as_file()
     chain = graph.evaluate_chain()
     for node in chain:
         output.write('%s\n' % node)
 
 def concat(graph, opts):
     "Concatenate module files in order of dependency."
-    output = get_output_file(opts.output)
+    output = opts.output_as_file()
     chain = graph.evaluate_chain()
     for node in chain:
         name, ext = os.path.splitext(node.file_name)
