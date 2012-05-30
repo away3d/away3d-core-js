@@ -219,20 +219,35 @@ class ModuleTranslator(object):
     def __init__(self, module_format):
         self.module_format = module_format
 
-    def translate_to_file(self, node, out_file):
+    def translate_to_file(self, node, out_file, include_deps=True, comment_file=True):
         # Use "native" away3d module format.
         if self.module_format == 'away3d':
             out_file.write('// %s\n' % node.file_name)
-            out_file.write('%s = (function() {\n' % node.module)
-            out_file.write(node.content.lstrip('\n'))
-            out_file.write('})();\n\n')
+            if include_deps:
+                out_file.write('away3d.module("%s", ' % node.module)
+                if len(node.dependencies) > 0:
+                    deps = ',\n'.join([ "\t'%s'" % d.module for d in node.dependencies])
+                    out_file.write('[\n%s\n],' % deps)
+                else:
+                    out_file.write('null,')
 
-        # Conver to the module format used by the Require.js library.
+                out_file.write('\nfunction()\n{\n')
+                out_file.write(node.content.lstrip('\n'))
+                out_file.write('\n});')
+            else:
+                out_file.write('%s = (function() {\n' % node.module)
+                out_file.write(node.content.lstrip('\n'))
+                out_file.write('})();\n\n')
+
+        # Convert to the module format used by the Require.js library.
         elif self.module_format == 'require.js':
-            deps = ',\n'.join([ "\t'%s'" % d.module for d in node.dependencies])
+            if include_deps:
+                deps = '\n' + ',\n'.join([ "\t'%s'" % d.module for d in node.dependencies]) + '\n'
+            else:
+                deps = ''
 
             out_file.write('// %s\n' % node.file_name)
-            out_file.write('define("%s", [\n%s\n], function() {\n' % (node.module, deps))
+            out_file.write('define("%s", [%s], function() {\n' % (node.module, deps))
             out_file.write(node.content.lstrip('\n'))
             out_file.write('});\n\n')
 
@@ -240,16 +255,17 @@ class ModuleTranslator(object):
         elif self.module_format == 'closure':
             out_file.write('// %s\n' % node.file_name)
             out_file.write('goog.provide("%s");\n' % node.module)
-            for dep in node.dependencies:
-                out_file.write('goog.require("%s");\n' % dep.module)
+            if include_deps:
+                for dep in node.dependencies:
+                    out_file.write('goog.require("%s");\n' % dep.module)
 
             out_file.write('\n%s = (function() {\n' % node.module)
             out_file.write(node.content.lstrip('\n'))
             out_file.write('})();\n\n')
 
-    def translate_to_path(self, node, out_path):
+    def translate_to_path(self, node, out_path, include_deps=True):
         with open(out_path, 'w') as out_file:
-            self.translate_to_file(node, out_file)
+            self.translate_to_file(node, out_file, include_deps)
 
 
 def listdep(graph, opts):
@@ -270,7 +286,7 @@ def concat(graph, opts):
     for node in chain:
         name, ext = os.path.splitext(node.file_name)
         if ext == '.js':
-            translator.translate_to_file(node, output)
+            translator.translate_to_file(node, output, False)
 
     output.close()
 
