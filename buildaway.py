@@ -182,6 +182,31 @@ def find_js_files(path):
     
 
 
+class BuildOpts(object):
+    def __init__(self):
+        self.inputs = []
+        self.sources = []
+        self.output = None
+        self.translation = None
+
+    def parse_args(self, args):
+        import getopt
+
+        inputs = []
+        sources = []
+        output = None
+
+        opts, extras = getopt.getopt(sys.argv[2:], 's:i:o:')
+
+        for opt in opts:
+            if opt[0] == '-i':
+                self.inputs.extend(find_js_files(opt[1]))
+            elif opt[0] == '-s':
+                self.sources.extend(find_js_files(opt[1]))
+            elif opt[0] == '-o':
+                self.output = opt[1]
+
+
 
 def get_output_file(output):
     if output is None:
@@ -189,16 +214,16 @@ def get_output_file(output):
     else:
         return open(output, 'w')
 
-def listdep(graph, output):
+def listdep(graph, opts):
     "List module dependencies in order of dependency."
-    output = get_output_file(output)
+    output = get_output_file(opts.output)
     chain = graph.evaluate_chain()
     for node in chain:
         output.write('%s\n' % node)
 
-def concat(graph, output):
+def concat(graph, opts):
     "Concatenate module files in order of dependency."
-    output = get_output_file(output)
+    output = get_output_file(opts.output)
     chain = graph.evaluate_chain()
     for node in chain:
         name, ext = os.path.splitext(node.file_name)
@@ -209,14 +234,14 @@ def concat(graph, output):
             output.write(node.content.lstrip('\n'))
             output.write('})();\n\n')
 
-def gather(graph, output):
+def gather(graph, opts):
     "Copy dependency module files to a common directory."
-    if output is not None and os.path.isdir(output):
+    if opts.output is not None and os.path.isdir(opts.output):
         import shutil
 
         for node in graph.all_nodes:
             fname = os.path.basename(node.file_name)
-            dst = os.path.join(output, fname)
+            dst = os.path.join(opts.output, fname)
             print('Copying %s > %s' % (node.file_name, dst))
             shutil.copyfile(node.file_name, dst)
 
@@ -255,26 +280,13 @@ if __name__ == '__main__':
             printhelp()
         else:
             if cmd in commands:
-                import getopt
-
-                inputs = []
-                sources = []
-                output = None
-
-                opts, extras = getopt.getopt(sys.argv[2:], 's:i:o:')
-
-                for opt in opts:
-                    if opt[0] == '-i':
-                        inputs.extend(find_js_files(opt[1]))
-                    elif opt[0] == '-s':
-                        sources.extend(find_js_files(opt[1]))
-                    elif opt[0] == '-o':
-                        output = opt[1]
+                opts = BuildOpts()
+                opts.parse_args(sys.argv[2:])
 
                 try:
                     graph = DepGraph()
-                    graph.build(inputs, sources)
-                    commands[cmd](graph, output)
+                    graph.build(opts.inputs, opts.sources)
+                    commands[cmd](graph, opts)
 
                 except BuildException as e:
                     print('Error: %s' % e)
