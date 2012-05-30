@@ -136,7 +136,7 @@ function()
             scale = away3d.Matrix3D.Scale(self.$.scaleX, self.$.scaleY, self.$.scaleZ);
 
         self.$.transform = new away3d.Matrix3D();
-        self.$.transform.mul(trans, rot);
+        self.$.transform.mul(rot, trans);
         self.$.transform.mul(self.$.transform, scale);
 
         self.$.transformDirty = false;
