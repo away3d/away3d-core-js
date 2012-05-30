@@ -18,9 +18,11 @@ function()
             scaleX: 1,
             scaleY: 1,
             scaleZ: 1,
+            transformDirty: true,
+            sceneTransformDirty: true,
             transform: new away3d.Matrix3D(),
-            transformDirty: true
-        }
+            sceneTransform: new away3d.Matrix3D()
+        };
     };
 
     Object.defineProperty(Object3D.prototype, 'x', {
@@ -122,9 +124,20 @@ function()
             return this.$.transform;
         },
         set: function(value) {
+            // TODO: Invalidate transformation properties (x, y, z etc)
             this.$.transformDirty = false;
             this.invalidateSceneTransform();
         }
+    });
+
+    Object.defineProperty(Object3D.prototype, 'sceneTransform', {
+        get: function() {
+            if (this.$.sceneTransformDirty) {
+                updateSceneTransform(this);
+            }
+
+            return this.$.sceneTransform;
+        },
     });
 
 
@@ -140,6 +153,20 @@ function()
         self.$.transform.mul(self.$.transform, scale);
 
         self.$.transformDirty = false;
+    };
+
+    var updateSceneTransform = function(self)
+    {
+        if (self.parent) {
+            self.$.sceneTransform.mul(self.transform, self.parent.sceneTransform);
+        }
+        else {
+            // TODO: Optimize using copyFrom()
+            self.$.sceneTransform.data = self.$.transform.data.slice();
+        }
+
+
+        self.$.sceneTransformDirty = false;
     };
 
 

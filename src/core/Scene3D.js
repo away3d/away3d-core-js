@@ -5,12 +5,20 @@ function()
 {
     var Scene3D = function()
     {
-        this.children = [];
+        this.$ = {
+            root: new away3d.Object3D()
+        };
     };
 
-    // Share some but not all methods with Object3D
-    Scene3D.prototype.appendChild = away3d.Object3D.prototype.appendChild;
-    Scene3D.prototype.traverse = away3d.Object3D.prototype.traverse;
+    Scene3D.prototype.appendChild = function(child)
+    {
+        return this.$.root.appendChild(child);
+    };
+
+    Scene3D.prototype.traverse = function(objects)
+    {
+        return this.$.root.traverse(objects);
+    };
 
     return Scene3D;
 });

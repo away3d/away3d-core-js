@@ -73,7 +73,7 @@ function()
             gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
             program.uTransform = gl.getUniformLocation(program, 'uTransform');
-            gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.transform.data));
+            gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.sceneTransform.data));
 
             program.uProjection = gl.getUniformLocation(program, 'uProjection');
             gl.uniformMatrix4fv(program.uProjection, false, new Float32Array(pm.data));
