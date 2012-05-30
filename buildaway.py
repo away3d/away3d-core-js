@@ -187,7 +187,7 @@ class BuildOpts(object):
         self.inputs = []
         self.sources = []
         self.output = None
-        self.translation = None
+        self.module_format = 'away3d'
 
     def parse_args(self, args):
         import getopt
@@ -196,7 +196,7 @@ class BuildOpts(object):
         sources = []
         output = None
 
-        opts, extras = getopt.getopt(sys.argv[2:], 's:i:o:')
+        opts, extras = getopt.getopt(sys.argv[2:], 's:i:o:t:')
 
         for opt in opts:
             if opt[0] == '-i':
@@ -205,6 +205,8 @@ class BuildOpts(object):
                 self.sources.extend(find_js_files(opt[1]))
             elif opt[0] == '-o':
                 self.output = opt[1]
+            elif opt[0] == '-t':
+                self.module_format = opt[1]
 
     def output_as_file(self):
         if self.output is None:
@@ -212,6 +214,42 @@ class BuildOpts(object):
         else:
             return open(self.output, 'w')
 
+
+class ModuleTranslator(object):
+    def __init__(self, module_format):
+        self.module_format = module_format
+
+    def translate_to_file(self, node, out_file):
+        # Use "native" away3d module format.
+        if self.module_format == 'away3d':
+            out_file.write('// %s\n' % node.file_name)
+            out_file.write('%s = (function() {\n' % node.module)
+            out_file.write(node.content.lstrip('\n'))
+            out_file.write('})();\n\n')
+
+        # Conver to the module format used by the Require.js library.
+        elif self.module_format == 'require.js':
+            deps = ',\n'.join([ "\t'%s'" % d.module for d in node.dependencies])
+
+            out_file.write('// %s\n' % node.file_name)
+            out_file.write('define("%s", [\n%s\n], function() {\n' % (node.module, deps))
+            out_file.write(node.content.lstrip('\n'))
+            out_file.write('});\n\n')
+
+        # Convert to the Google Closure compiler module format.
+        elif self.module_format == 'closure':
+            out_file.write('// %s\n' % node.file_name)
+            out_file.write('goog.provide("%s");\n' % node.module)
+            for dep in node.dependencies:
+                out_file.write('goog.require("%s");\n' % dep.module)
+
+            out_file.write('\n%s = (function() {\n' % node.module)
+            out_file.write(node.content.lstrip('\n'))
+            out_file.write('})();\n\n')
+
+    def translate_to_path(self, node, out_path):
+        with open(out_path, 'w') as out_file:
+            self.translate_to_file(node, out_file)
 
 
 def listdep(graph, opts):
@@ -221,32 +259,38 @@ def listdep(graph, opts):
     for node in chain:
         output.write('%s\n' % node)
 
+
 def concat(graph, opts):
     "Concatenate module files in order of dependency."
     output = opts.output_as_file()
     chain = graph.evaluate_chain()
+
+    translator = ModuleTranslator(opts.module_format)
+
     for node in chain:
         name, ext = os.path.splitext(node.file_name)
         if ext == '.js':
-            #TODO: Support different output formats
-            output.write('// %s\n' % node.file_name)
-            output.write('%s = (function() {\n' % node.module)
-            output.write(node.content.lstrip('\n'))
-            output.write('})();\n\n')
+            translator.translate_to_file(node, output)
+
+    output.close()
+
 
 def gather(graph, opts):
     "Copy dependency module files to a common directory."
     if opts.output is not None and os.path.isdir(opts.output):
         import shutil
 
+        translator = ModuleTranslator(opts.module_format)
+
         for node in graph.all_nodes:
             fname = os.path.basename(node.file_name)
             dst = os.path.join(opts.output, fname)
             print('Copying %s > %s' % (node.file_name, dst))
-            shutil.copyfile(node.file_name, dst)
+            translator.translate_to_path(node, dst)
 
     else:
         raise BuildException('Output must be directory')
+
 
 def printhelp():
     print('')
@@ -262,6 +306,7 @@ def printhelp():
     print('  -i <path>  Specifies a required input.')
     print('  -s <path>  Specifies a path to search for dependencies.')
     print('  -o <path>  Specifies output file or directory.')
+    print('  -t <fmt>   Converts to other module formats. Can be "require.js" or "closure".')
     print('')
 
 
