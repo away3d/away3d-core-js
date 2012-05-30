@@ -28,7 +28,7 @@ function()
         set: function(value) {
             if (this.$.x != value) {
                 this.$.x = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -38,7 +38,7 @@ function()
         set: function(value) {
             if (this.$.y != value) {
                 this.$.y = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -48,7 +48,7 @@ function()
         set: function(value) {
             if (this.$.z != value) {
                 this.$.z = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -58,7 +58,7 @@ function()
         set: function(value) {
             if (this.$.scaleX != value) {
                 this.$.scaleX = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -68,7 +68,7 @@ function()
         set: function(value) {
             if (this.$.scaleY != value) {
                 this.$.scaleY = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -78,7 +78,7 @@ function()
         set: function(value) {
             if (this.$.scaleZ != value) {
                 this.$.scaleZ = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -88,7 +88,7 @@ function()
         set: function(value) {
             if (this.$.rotationX != value) {
                 this.$.rotationX = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -98,7 +98,7 @@ function()
         set: function(value) {
             if (this.$.rotationY != value) {
                 this.$.rotationY = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -108,7 +108,7 @@ function()
         set: function(value) {
             if (this.$.rotationZ != value) {
                 this.$.rotationZ = value;
-                this.$.transformDirty = true;
+                this.invalidateTransform();
             }
         }
     });
@@ -123,7 +123,7 @@ function()
         },
         set: function(value) {
             this.$.transformDirty = false;
-            this.$.transform = value;
+            this.invalidateSceneTransform();
         }
     });
 
@@ -140,6 +140,25 @@ function()
         self.$.transform.mul(self.$.transform, scale);
 
         self.$.transformDirty = false;
+    };
+
+
+    Object3D.prototype.invalidateTransform = function()
+    {
+        this.$.transformDirty = true;
+
+        this.invalidateSceneTransform();
+    };
+
+
+    Object3D.prototype.invalidateSceneTransform = function()
+    {
+        this.$.sceneTransformDirty = true;
+
+        var i = this.children.length;
+        while (i-->0) {
+            this.children[i].invalidateSceneTransform();
+        }
     };
 
 
