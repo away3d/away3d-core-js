@@ -84,7 +84,7 @@ function()
         while (i-->0) {
             var j = 4;
             while (j-->0) {
-                this.data[i*4+j] = 
+                this.data[j*4+i] = 
                     md0[j*4+0] * md1[0*4+i] + 
                     md0[j*4+1] * md1[1*4+i] + 
                     md0[j*4+2] * md1[2*4+i] + 
