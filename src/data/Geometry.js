@@ -6,15 +6,18 @@ function()
         this.vertices = [];
         this.indices = [];
         this.colors = [];
+        this.uvs = [];
 
         this.$ = {
             vertexBuffer: null,
             indexBuffer: null,
             colorBuffer: null,
+            uvBuffer: null,
 
             vertexBufferDirty: true,
             indexBufferDirty: true,
-            colorBufferDirty: true
+            colorBufferDirty: true,
+            uvBufferDirty: true
         };
     };
 
@@ -51,6 +54,18 @@ function()
         }
 
         return this.$.colorBuffer;
+    };
+
+
+    Geometry.prototype.getUVBuffer = function(gl)
+    {
+        if (this.$.uvBufferDirty) {
+            this.$.uvBuffer = this.$.uvBuffer || gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.$.uvBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.uvs), gl.STATIC_DRAW);
+        }
+
+        return this.$.uvBuffer;
     };
 
     return Geometry;

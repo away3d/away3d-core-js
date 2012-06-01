@@ -22,6 +22,7 @@ function()
         code = [
             // TODO: Check dependencies
             'varying lowp vec4 vColor;',
+            'varying lowp vec2 vTexCoord;',
 
             // TODO: Create ambient method type
             'void ambient(out lowp vec4 outColor) {',
