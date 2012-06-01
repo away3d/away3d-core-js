@@ -1,14 +1,16 @@
 away3d.module('away3d.Mesh', [
     'away3d.Object3D',
-    'away3d.Geometry'
+    'away3d.Geometry',
+    'away3d.DefaultMaterial'
 ],
 function()
 {
-    var Mesh = function(geometry)
+    var Mesh = function(geometry, material)
     {
         away3d.Object3D.call(this);
 
         this.geometry = geometry || new away3d.Geometry();
+        this.material = material || new away3d.DefaultMaterial();
     };
 
     Mesh.prototype = new away3d.Object3D();
