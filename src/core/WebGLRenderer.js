@@ -11,11 +11,13 @@ function()
     {
         var code = [
             'attribute vec3 aVertexPosition;',
+            'attribute vec3 aVertexColor;',
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
+            'varying vec4 vColor;',
             'void main(void) {',
+            '  vColor = vec4(aVertexColor, 1.0);',
             '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
-            //'  gl_Position = uTransform * vec4(aVertexPosition, 1.0);',
             '}'
         ].join('\n');
 
@@ -29,14 +31,18 @@ function()
     var getSimpleFragmentShader = function(gl)
     {
         var code = [
+            'varying lowp vec4 vColor;',
             'void main(void) {',
-            '  gl_FragColor = vec4(1.0, 0.75, 0.0, 1.0);',
+            '  gl_FragColor = vColor;',
             '}'
         ].join('\n');
 
         var shader = gl.createShader(gl.FRAGMENT_SHADER);
         gl.shaderSource(shader, code);
         gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+                console.log(gl.getShaderInfoLog(shader));
 
         return shader;
     };
@@ -71,6 +77,12 @@ function()
             program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
             gl.enableVertexAttribArray(program.aVertexPosition);
             gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, geom.getColorBuffer(gl));
+
+            program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
+            gl.enableVertexAttribArray(program.aVertexColor);
+            gl.vertexAttribPointer(program.aVertexColor, 3, gl.FLOAT, false, 0, 0);
 
             program.uTransform = gl.getUniformLocation(program, 'uTransform');
             gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.sceneTransform.data));

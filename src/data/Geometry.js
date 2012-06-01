@@ -5,9 +5,11 @@ function()
     {
         this.vertices = [];
         this.indices = [];
+        this.colors = [];
 
         this.vertexBuffer = null;
         this.indexBuffer = null;
+        this.colorBuffer = null;
     };
 
     Geometry.prototype.getVertexBuffer = function(gl)
@@ -31,6 +33,18 @@ function()
         }
 
         return this.indexBuffer;
+    };
+
+
+    Geometry.prototype.getColorBuffer = function(gl)
+    {
+        if (!this.colorBuffer) {
+            this.colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
+        }
+
+        return this.colorBuffer;
     };
 
     return Geometry;
