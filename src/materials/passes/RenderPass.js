@@ -25,8 +25,6 @@ function()
 
             // TODO: Check for compile errors
 
-            console.log(gl.getShaderInfoLog(vs));
-
             self.$.vertexShader = vs;
             self.$.vertexShaderDirty = false;
         }
@@ -35,8 +33,6 @@ function()
             var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
             gl.shaderSource(fs, self.getFragmentCode());
             gl.compileShader(fs);
-
-            console.log(gl.getShaderInfoLog(fs));
 
             self.$.fragmentShader = fs;
             self.$.fragmentShaderDirty = false;
