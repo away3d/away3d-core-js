@@ -13,6 +13,20 @@ function()
     DefaultScreenPass.constructor = DefaultScreenPass;
 
 
+    DefaultScreenPass.prototype.activate = function(gl, camera)
+    {
+        away3d.RenderPass.prototype.activate.call(this, gl, camera);
+
+        var i, len,
+            methods = this.$.material.$.methods;
+
+        len = methods.length;
+        for (i=0; i<len; i++) {
+            methods[i].activate(gl, this.$.program);
+        }
+    };
+
+
     DefaultScreenPass.prototype.getFragmentCode = function()
     {
         var i, len, code,
@@ -23,6 +37,7 @@ function()
             // TODO: Check dependencies
             'varying lowp vec4 vColor;',
             'varying lowp vec2 vTexCoord;',
+            'uniform sampler2D uTexture0;',
 
             // TODO: Create ambient method type
             'void ambient(out lowp vec4 outColor) {',

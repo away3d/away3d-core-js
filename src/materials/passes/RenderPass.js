@@ -41,8 +41,6 @@ function()
         gl.attachShader(self.$.program, self.$.vertexShader);
         gl.attachShader(self.$.program, self.$.fragmentShader);
         gl.linkProgram(self.$.program);
-
-        gl.getProgramInfoLog(self.$.program);
     };
 
 
