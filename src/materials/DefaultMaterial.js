@@ -1,14 +1,20 @@
 away3d.module('away3d.DefaultMaterial', [
-    'away3d.RenderPass'
+    'away3d.DefaultScreenPass'
 ],
 function()
 {
     var DefaultMaterial = function()
     {
         this.$ = {
-            // TODO: Use dedicated pass type instead
-            screenPass: new away3d.RenderPass(this)
+            screenPass: new away3d.DefaultScreenPass(this),
+            methods: []
         };
+    };
+
+
+    DefaultMaterial.prototype.addMethod = function(method)
+    {
+        this.$.methods.push(method);
     };
 
 
