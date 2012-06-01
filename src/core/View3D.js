@@ -46,6 +46,7 @@ function()
 
     View3D.prototype.render = function()
     {
+        this.camera.$.aspectRatio = this.$.aspectRatio;
         this.renderer.render(this);
     };
 

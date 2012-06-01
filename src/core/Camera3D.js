@@ -13,6 +13,7 @@ function()
 
         this.$.viewProjection =  new away3d.Matrix3D();
         this.$.viewProjectionDirty = true;
+        this.$.aspectRatio = 0;
     };
 
     Camera3D.prototype = new away3d.Object3D();
@@ -33,13 +34,13 @@ function()
     };
 
 
-    Camera3D.prototype.getViewProjection = function(aspectRatio)
+    Camera3D.prototype.getViewProjection = function()
     {
         if (this.$.viewProjectionDirty) {
             // TODO: inverse transform should be on Object3D
             var inv = new away3d.Matrix3D();
             inv.inv(this.transform);
-            this.$.viewProjection.mul(inv, this.lens.getProjectionMatrix(aspectRatio));
+            this.$.viewProjection.mul(inv, this.lens.getProjectionMatrix(this.$.aspectRatio));
             this.$.viewProjectionDirty = false;
         }
 
