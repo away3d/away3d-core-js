@@ -78,6 +78,10 @@ function()
             program.uProjection = gl.getUniformLocation(program, 'uProjection');
             gl.uniformMatrix4fv(program.uProjection, false, new Float32Array(pm.data));
 
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.getIndexBuffer(gl));
             gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
         }
