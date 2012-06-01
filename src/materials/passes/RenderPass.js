@@ -44,19 +44,28 @@ function()
     };
 
 
-    RenderPass.prototype.render = function(renderable, gl, camera)
+    RenderPass.prototype.activate = function(gl, camera)
     {
-        // TODO: Split into activate/render/deactivate
-        var geom = renderable.geometry,
-            pm = camera.getViewProjection();
+        var pm = camera.getViewProjection();
 
         if (this.$.vertexShaderDirty || this.$.fragmentShaderDirty) {
             updateProgram(this, gl);
         }
 
-        var program = this.$.program;
+        gl.useProgram(this.$.program);
 
-        gl.useProgram(program);
+        var uProjection = gl.getUniformLocation(this.$.program, 'uProjection');
+        gl.uniformMatrix4fv(uProjection, false, new Float32Array(pm.data));
+    };
+
+
+    RenderPass.prototype.render = function(renderable, gl, camera)
+    {
+        var geom = renderable.geometry,
+            program = this.$.program;
+
+        program.uTransform = gl.getUniformLocation(program, 'uTransform');
+        gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.sceneTransform.data));
 
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
 
@@ -70,14 +79,14 @@ function()
         gl.enableVertexAttribArray(program.aVertexColor);
         gl.vertexAttribPointer(program.aVertexColor, 3, gl.FLOAT, false, 0, 0);
 
-        program.uTransform = gl.getUniformLocation(program, 'uTransform');
-        gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.sceneTransform.data));
-
-        program.uProjection = gl.getUniformLocation(program, 'uProjection');
-        gl.uniformMatrix4fv(program.uProjection, false, new Float32Array(pm.data));
-
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.getIndexBuffer(gl));
         gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+    };
+
+
+    RenderPass.prototype.deactivate = function(gl)
+    {
+        // TODO: Unbind buffers et c?
     };
 
 

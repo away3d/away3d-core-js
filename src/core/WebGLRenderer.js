@@ -29,7 +29,9 @@ function()
         while (i-->0) {
             var renderable = renderables[i];
 
+            renderable.material.activate(gl, view.camera);
             renderable.material.render(renderable, gl, view.camera);
+            renderable.material.deactivate(gl);
         }
     };
 
