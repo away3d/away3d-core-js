@@ -45,7 +45,7 @@ class DepGraph(object):
         import re
 
         cache = {}
-        queue = [DepNode(file_name=f) for f in inputs]
+        queue = [DepNode(module=f, file_name=f) for f in inputs]
 
         def has_node(mod_name, only_if_loaded=False):
             "Checks the cache for a node representing a module by this name"
@@ -89,7 +89,7 @@ class DepGraph(object):
 
         mod_re = re.compile('away3d\.module\(\s?["\']([_a-zA-Z0-9.]*)["\']\s?,\s?(.*),\s?function\(\)\s?\{(.*)\}\s?\)\s?;?\s?$', re.DOTALL)
         dep_re = re.compile('["\']([a-zA-Z0-9.]+)["\']')
-        inc_re = re.compile('away3d\.include\(\s*(.*),\s*function\(\s*\)', re.DOTALL)
+        inc_re = re.compile('away3d\.include\(\s*([_a-zA-Z0-9., "\']*),\s*function\(\s*\)', re.DOTALL)
 
         for node in queue:
             # Check if this node has already been checked since
@@ -132,6 +132,7 @@ class DepGraph(object):
                             # as module name.
                             file_node = get_node(fname)
                             file_node.file_name = fname
+                            file_node.module = fname
                             file_node.is_module = False
 
                             for dep_name in dep_names:
@@ -220,6 +221,10 @@ class ModuleTranslator(object):
         self.module_format = module_format
 
     def translate_to_file(self, node, out_file, include_deps=True, comment_file=True):
+        if not node.is_module:
+            with open(node.file_name, 'r') as in_file:
+                out_file.write(in_file.read());
+
         # Use "native" away3d module format.
         if self.module_format == 'away3d':
             out_file.write('// %s\n' % node.file_name)
