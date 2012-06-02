@@ -17,7 +17,7 @@ function()
     {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
-        xhr.requestType = 'arraybuffer';
+        xhr.responseType = 'arraybuffer';
         
         var self = this;
         xhr.onload = function(ev) {
