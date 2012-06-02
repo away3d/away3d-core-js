@@ -1,4 +1,6 @@
-away3d.module('away3d.FileLoader', null,
+away3d.module('away3d.FileLoader', [
+    'away3d.EventTarget'
+],
 function()
 {
     var parsers = [];
@@ -6,6 +8,10 @@ function()
     var FileLoader = function()
     {
     };
+
+    FileLoader.prototype = new away3d.EventTarget();
+    FileLoader.prototype.constructor = FileLoader;
+
 
     FileLoader.enableParser = function(ParserType)
     {
@@ -25,9 +31,10 @@ function()
 
             // TODO: Don't hard code parser
             var parser = new (parsers[0])();
+
+            // TODO: Handle and bubble events more nicely
             parser.addEventListener('asset', function(evt) {
-                // TODO: Handle and bubble
-                console.log('EVENT!');
+                self.dispatchEvent(evt);
             });
             parser.parseAsync(buf);
         };

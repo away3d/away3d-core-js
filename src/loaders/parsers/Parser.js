@@ -79,6 +79,7 @@ function()
 
                         // TODO: Reuse this
                         var evt = new away3d.Event3D('asset');
+                        evt.asset = geom;
                         self.dispatchEvent(evt);
                         break;
                 }
