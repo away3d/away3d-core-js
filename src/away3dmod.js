@@ -6,12 +6,39 @@ var away3d = away3d || {};
 
     away3d.MODULE_ROOT = away3d.MODULE_ROOT || '';
 
+    away3d.resolveModule = function(module)
+    {
+        var src = module;
+        if (module.indexOf('away3d.')==0) {
+            src = module.substr(7)+'.js';
+
+            if (away3d.MODULE_ROOT) {
+                src = away3d.MODULE_ROOT + '/' + src;
+            }
+        }
+
+        return src;
+    };
+
+    away3d.originOfModule = function(object)
+    {
+        var module;
+
+        for (module in included) {
+            if (included[module].object == object)
+                return included[module].src;
+        }
+    };
+
     away3d.module = function(module, dependencies, factory)
     {
         var names = module.split('.');
         var i, len = names.length-1;
 
-        included[module] = true;
+        included[module] = {
+            object: null, // Set further down
+            src: loading[module].src
+        };
 
         away3d.include(dependencies, function() {
             var par = window;
@@ -24,7 +51,10 @@ var away3d = away3d || {};
                 par = par[name];
             }
 
-            par[names[names.length-1]] = factory();
+            var obj = factory();
+
+            par[names[names.length-1]] = obj;
+            included[module].object = obj;
 
             if (loading.hasOwnProperty(module)) {
                 var callback = loading[module].callback;
@@ -66,14 +96,7 @@ var away3d = away3d || {};
         }
         else {
             if (!included.hasOwnProperty(imports)) {
-                var src = imports;
-                if (imports.indexOf('away3d.')==0) {
-                    src = imports.substr(7)+'.js';
-
-                    if (away3d.MODULE_ROOT) {
-                        src = away3d.MODULE_ROOT + '/' + src;
-                    }
-                }
+                var src = away3d.resolveModule(imports);
 
                 var element = document.createElement('script');
                 element.setAttribute('src', src);
