@@ -3,7 +3,12 @@ function()
 {
     var Parser = function()
     {
-        
+        this.$ = {
+            offset: 0,
+            length: 0,
+            littleEndian: true,
+            data: null
+        };
     };
 
 
@@ -64,6 +69,64 @@ function()
     Parser.prototype.postMessage = function(msg)
     {
         // Overwritten by worker boot-strapping mechanism
+    };
+
+
+    Parser.prototype.resetData = function(data, littleEndian)
+    {
+        this.$.data = new DataView(data);
+        this.$.littleEndian = littleEndian;
+        this.$.length = data.byteLength;
+    };
+
+    Parser.prototype.hasData = function()
+    {
+        return (this.$.offset < this.$.length);
+    };
+
+    Parser.prototype.seek = function(delta)
+    {
+        this.$.offset += delta;
+    };
+
+    Parser.prototype.readInt8 = function()
+    {
+        return this.$.data.getInt8((this.$.offset += 1) - 1);
+    };
+
+    Parser.prototype.readUint8 = function()
+    {
+        return this.$.data.getUint8((this.$.offset += 1) - 1);
+    };
+
+    Parser.prototype.readInt16 = function()
+    {
+        return this.$.data.getInt16((this.$.offset += 2) - 2, this.$.littleEndian);
+    };
+
+    Parser.prototype.readUint16 = function()
+    {
+        return this.$.data.getUint16((this.$.offset += 2) - 2, this.$.littleEndian);
+    };
+
+    Parser.prototype.readInt32 = function()
+    {
+        return this.$.data.getInt32((this.$.offset += 4) - 4, this.$.littleEndian);
+    };
+
+    Parser.prototype.readUint32 = function()
+    {
+        return this.$.data.getUint32((this.$.offset += 4) - 4, this.$.littleEndian);
+    };
+
+    Parser.prototype.readFloat32 = function()
+    {
+        return this.$.data.getFloat32((this.$.offset += 4) - 4, true);
+    };
+
+    Parser.prototype.readFloat64 = function()
+    {
+        return this.$.data.getFloat64((this.$.offset += 8) - 8, true);
     };
 
     return Parser;
