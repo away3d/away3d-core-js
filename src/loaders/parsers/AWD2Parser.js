@@ -39,22 +39,117 @@ function()
         flags = self.readUint8();
         len = self.readUint32();
 
-        self.postMessage([self.$.curBlockId, ns, type, len]);
+        if (ns == 0) {
+            // TODO: Implement all block types
+            switch (type) {
+                case 1:
+                    parseGeometry(self);
+                    break;
+                default:
+                    // Unknown block type
+                    self.seek(len);
+                    break;
+            };
+        }
+        else {
+            // TODO: Deal with user blocks
+            self.seek(len);
+        }
+    };
 
-        // TODO: Read block content
-        self.seek(len);
+    var parseVarStr = function(self)
+    {
+        // TODO: Read string
+        self.seek(self.readUint16());
+        return '';
+    };
+
+    var parseProperties = function(self)
+    {
+        // TODO: Don't skip properties
+        self.seek(self.readUint32());
+    };
+
+    var parseGeometry = function(self)
+    {
+        var name, numSubs, subsParsed, data;
+
+        // TODO: Do this per sub when subs are supported
+        data = {
+            vertexData: [],
+            indexData: [],
+            uvData: []
+        };
+
+        name = parseVarStr(self);
+        numSubs = self.readUint16();
+
+        // Geometry has no properties
+        parseProperties(self);
+
+        subsParsed = 0;
+        while (subsParsed < numSubs) {
+            var subLen, subEnd;
+
+            subLen = self.readUint32();
+
+            // SubGeometry has no properties
+            parseProperties(self);
+
+            subEnd = self.$.offset + subLen;
+
+            while (self.$.offset < subEnd) {
+                var strType, strFormat, strLen, strEnd;
+
+                strType = self.readUint8();
+                strFormat = self.readUint8();
+                strLen = self.readUint32();
+                strEnd = self.$.offset + strLen;
+
+                // TODO: Respect strFormat
+
+                if (strType == 1) {
+                    while (self.$.offset < strEnd) {
+                        data.vertexData.push(self.readFloat32());
+                    }
+                }
+                else if (strType == 2) {
+                    while (self.$.offset < strEnd) {
+                        data.indexData.push(self.readUint16());
+                    }
+                }
+                else if (strType == 3) {
+                    while (self.$.offset < strEnd) {
+                        data.uvData.push(self.readFloat32());
+                    }
+                }
+                else {
+                    // TODO: Support all streams type
+                    // Unsupported stream type
+                    self.seek(strLen);
+                }
+            }
+
+            // TODO: Deal with user attributes
+            self.seek(4);
+
+            subsParsed++;
+        }
+
+        // TODO: Deal with user attributes
+        self.seek(4);
+
+        self.finalizeAsset('geom', data);
     };
 
 
     AWD2Parser.prototype.parse = function(data)
     {
-        this.postMessage('start parsing');
 
         this.resetData(data, true);
 
         parseHeader(this);
 
-        this.postMessage('has data: '+this.$.length);
         while (this.hasData()) {
             parseNextBlock(this);
         }

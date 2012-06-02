@@ -1,4 +1,6 @@
-away3d.module('away3d.Parser', null,
+away3d.module('away3d.Parser', [
+    'away3d.Geometry'
+],
 function()
 {
     var Parser = function()
@@ -9,6 +11,15 @@ function()
             littleEndian: true,
             data: null
         };
+    };
+
+
+    var copyAssetInternalData = function(asset, data)
+    {
+        var prop;
+        for (prop in data) {
+            asset.$[prop] = data[prop];
+        }
     };
 
 
@@ -45,8 +56,21 @@ function()
         var worker = new Worker(url);
 
         worker.onmessage = function(ev) {
-            // Properly handle different messages
-            console.log('worker said', ev.data);
+            var msg = ev.data;
+
+            if (msg.command == 'asset') {
+                // TODO: Consider passing this on to FileLoader to avoid including modules
+                switch (msg.assetType) {
+                    case 'geom':
+                        var geom = new away3d.Geometry();
+                        copyAssetInternalData(geom, msg.data);
+                        console.log(geom);
+                        break;
+                }
+            }
+            else {
+                console.log('unknown message from parser worker', msg);
+            }
         };
 
         // Send parse command
@@ -69,6 +93,16 @@ function()
     Parser.prototype.postMessage = function(msg)
     {
         // Overwritten by worker boot-strapping mechanism
+    };
+
+
+    Parser.prototype.finalizeAsset = function(type, data)
+    {
+        this.postMessage({
+            command: 'asset',
+            assetType: type,
+            data: data
+        });
     };
 
 
