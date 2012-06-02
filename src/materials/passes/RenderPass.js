@@ -83,7 +83,7 @@ function()
         gl.vertexAttribPointer(program.aTexCoord, 2, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.getIndexBuffer(gl));
-        gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, geom.$.indexData.length, gl.UNSIGNED_SHORT, 0);
     };
 
 

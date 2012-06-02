@@ -9,6 +9,11 @@ function()
         this.uvs = [];
 
         this.$ = {
+            vertexData: [],
+            indexData: [],
+            colorData: [],
+            uvData: [],
+
             vertexBuffer: null,
             indexBuffer: null,
             colorBuffer: null,
@@ -26,7 +31,9 @@ function()
         if (this.$.vertexBufferDirty) {
             this.$.vertexBuffer = this.$.vertexBuffer || gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.$.vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.$.vertexData), gl.STATIC_DRAW);
+
+            this.$.vertexBufferDirty = false;
         }
 
         return this.$.vertexBuffer;
@@ -38,7 +45,9 @@ function()
         if (this.$.indexBufferDirty) {
             this.$.indexBuffer = this.$.indexBuffer || gl.createBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.$.indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.$.indexData), gl.STATIC_DRAW);
+
+            this.$.indexBufferDirty = false;
         }
 
         return this.$.indexBuffer;
@@ -50,7 +59,9 @@ function()
         if (this.$.colorBufferDirty) {
             this.$.colorBuffer = this.$.colorBuffer || gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.$.colorBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.$.colorData), gl.STATIC_DRAW);
+
+            this.$.colorBufferDirty = false;
         }
 
         return this.$.colorBuffer;
@@ -62,7 +73,9 @@ function()
         if (this.$.uvBufferDirty) {
             this.$.uvBuffer = this.$.uvBuffer || gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.$.uvBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.uvs), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.$.uvData), gl.STATIC_DRAW);
+
+            this.$.uvBufferDirty = false;
         }
 
         return this.$.uvBuffer;
