@@ -25,6 +25,10 @@ function()
 
             // TODO: Don't hard code parser
             var parser = new (parsers[0])();
+            parser.addEventListener('asset', function(evt) {
+                // TODO: Handle and bubble
+                console.log('EVENT!');
+            });
             parser.parseAsync(buf);
         };
 

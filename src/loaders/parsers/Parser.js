@@ -1,17 +1,28 @@
 away3d.module('away3d.Parser', [
+    'away3d.EventTarget',
+    'away3d.Event3D',
     'away3d.Geometry'
 ],
 function()
 {
     var Parser = function()
     {
-        this.$ = {
-            offset: 0,
-            length: 0,
-            littleEndian: true,
-            data: null
-        };
+        if (away3d.EventTarget) {
+            away3d.EventTarget.call(this);
+        }
+
+        this.$ = this.$ || {};
+        this.$.offset = 0;
+        this.$.length = 0;
+        this.$.littleEndian = true;
+        this.$.data = null;
     };
+
+
+    if (away3d.EventTarget) {
+        Parser.prototype = new away3d.EventTarget();
+        Parser.prototype.constructor = Parser;
+    }
 
 
     var copyAssetInternalData = function(asset, data)
@@ -55,6 +66,7 @@ function()
         var url = URL.createObjectURL(bb.getBlob());
         var worker = new Worker(url);
 
+        var self = this;
         worker.onmessage = function(ev) {
             var msg = ev.data;
 
@@ -64,7 +76,10 @@ function()
                     case 'geom':
                         var geom = new away3d.Geometry();
                         copyAssetInternalData(geom, msg.data);
-                        console.log(geom);
+
+                        // TODO: Reuse this
+                        var evt = new away3d.Event3D('asset');
+                        self.dispatchEvent(evt);
                         break;
                 }
             }
