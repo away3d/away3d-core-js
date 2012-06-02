@@ -3,12 +3,12 @@ function()
 {
     var Matrix3D = function(data)
     {
-        this.data = data || [
+        this.data = data? new Float32Array(data) : new Float32Array([
             1, 0, 0, 0, // col 0
             0, 1, 0, 0, // col 1
             0, 0, 1, 0, // col 2
             0, 0, 0, 1  // col 3
-        ];
+        ]);
     };
 
     var m011, m012, m013, m014,
@@ -16,6 +16,16 @@ function()
         m031, m032, m033, m034,
         m041, m042, m043, m044;
 
+    var tmp0 = new Float32Array(16);
+    var tmp1 = new Float32Array(16);
+
+    var copyData = function(to, from)
+    {
+        var i = 16;
+        while (i-->0)
+            to[i] = from[i];
+        return to;
+    };
 
     Matrix3D.Translation = function(x, y, z, mtx)
     {
@@ -77,8 +87,8 @@ function()
 
     Matrix3D.prototype.mul = function(m0, m1)
     {
-        var md0 = (m0==this)? m0.data.slice() : m0.data,
-            md1 = (m1==this)? m1.data.slice() : m1.data,
+        var md0 = (m0==this)? copyData(tmp0, m0.data) : m0.data,
+            md1 = (m1==this)? copyData(tmp1, m1.data) : m1.data,
             i = 4;
 
         while (i-->0) {
@@ -141,6 +151,11 @@ function()
         md[14] = -d * (m011 * (m022*m034 - m032*m024) - m021 * (m012*m034 - m032*m014) + m031 * (m012*m024 - m022*m014));
 
         return true;
+    };
+
+    Matrix3D.prototype.copyFrom = function(mtx)
+    {
+        copyData(this.data, mtx.data);
     };
 
     return Matrix3D;

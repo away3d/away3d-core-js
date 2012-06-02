@@ -161,8 +161,7 @@ function()
             self.$.sceneTransform.mul(self.transform, self.parent.sceneTransform);
         }
         else {
-            // TODO: Optimize using copyFrom()
-            self.$.sceneTransform.data = self.$.transform.data.slice();
+            self.$.sceneTransform.copyFrom(self.$.transform);
         }
 
 

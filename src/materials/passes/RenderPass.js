@@ -55,7 +55,7 @@ function()
         gl.useProgram(this.$.program);
 
         var uProjection = gl.getUniformLocation(this.$.program, 'uProjection');
-        gl.uniformMatrix4fv(uProjection, false, new Float32Array(pm.data));
+        gl.uniformMatrix4fv(uProjection, false, pm.data);
     };
 
 
@@ -65,7 +65,7 @@ function()
             program = this.$.program;
 
         program.uTransform = gl.getUniformLocation(program, 'uTransform');
-        gl.uniformMatrix4fv(program.uTransform, false, new Float32Array(renderable.sceneTransform.data));
+        gl.uniformMatrix4fv(program.uTransform, false, renderable.sceneTransform.data);
 
         program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
         gl.enableVertexAttribArray(program.aVertexPosition);
