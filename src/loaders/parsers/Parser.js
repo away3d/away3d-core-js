@@ -41,12 +41,13 @@ function()
         var pSrc = loc + '/' + away3d.originOfModule(this.constructor);
         // TODO: Check so bSrc != pSrc (which it will be when library is concatenated together)
         var script = [
-            'var ParserType;',
             'var away3d = {};',
             // TODO: Consider way to make this independent of module format
             'away3d.module = function(m,d,f) {',
+
+            // TODO: Don't hard-code parser name
             '  if (m=="away3d.AWD2Parser") {',
-            '    ParserType = f();',
+            '    away3d.AWD2Parser = f();',
             '  }',
             '  else if (m=="away3d.Parser") {',
             '    away3d.Parser = f();',
@@ -54,7 +55,9 @@ function()
             '}',
             'importScripts("'+bSrc+'");',
             'importScripts("'+pSrc+'");',
-            'var parser = new ParserType();',
+
+            // TODO: Don't hard-code parser name
+            'var parser = new away3d.AWD2Parser();',
             'self.onmessage = function(ev) { parser.onMessage(ev); };',
             'parser.postMessage = function(msg) { self.postMessage(msg); };'
         ].join('\n');
