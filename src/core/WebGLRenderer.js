@@ -25,13 +25,18 @@ function()
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
 
-        var i = renderables.length;
-        while (i-->0) {
-            var renderable = renderables[i];
+        var i = renderables.length-1;
+        while (i>=0) {
+            var mtl = renderables[i].material;
+            mtl.activate(gl, view.camera);
 
-            renderable.material.activate(gl, view.camera);
-            renderable.material.render(renderable, gl, view.camera);
-            renderable.material.deactivate(gl);
+            // Render all renderables that use this material
+            do {
+                var renderable = renderables[i];
+                mtl.render(renderable, gl, view.camera);
+            } while (i-->0 && renderables[i].material == mtl);
+
+            mtl.deactivate(gl);
         }
     };
 
