@@ -50,12 +50,14 @@ function()
         return mtx;
     };
 
+    var tmpRx = new Matrix3D(),
+        tmpRy = new Matrix3D(),
+        tmpRz = new Matrix3D();
+
+    // TODO: Research faster way of composing rotation matrix
     Matrix3D.Rotation = function(x, y, z, mtx)
     {
-        // Optimize this
-        var rx = new Matrix3D(),
-            ry = new Matrix3D(),
-            rz = new Matrix3D(),
+        var rx = tmpRx, ry = tmpRy, rz = tmpRz,
             mtx = mtx || new Matrix3D();
 
         rx.data[0] = 1;
@@ -151,6 +153,14 @@ function()
         md[14] = -d * (m011 * (m022*m034 - m032*m024) - m021 * (m012*m034 - m032*m014) + m031 * (m012*m024 - m022*m014));
 
         return true;
+    };
+
+    Matrix3D.prototype.identity = function()
+    {
+        var md = this.data;
+        md[0] = md[5] = md[10] = md[15] = 1;
+        md[1] = md[2] = md[3] = md[4] = md[6] = md[7] = md[8] =
+        md[9] = md[11] = md[12] = md[13] = md[14] = 0;
     };
 
     Matrix3D.prototype.copyFrom = function(mtx)
