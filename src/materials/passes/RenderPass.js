@@ -20,7 +20,7 @@ function()
 
     var updateProgram = function(self, gl)
     {
-        self.$.program = self.$.program || gl.createProgram();
+        var program = self.$.program || gl.createProgram();
 
         if (self.$.fragmentShaderDirty) {
             var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
@@ -44,9 +44,16 @@ function()
             self.$.vertexShaderDirty = false;
         }
 
-        gl.attachShader(self.$.program, self.$.vertexShader);
-        gl.attachShader(self.$.program, self.$.fragmentShader);
-        gl.linkProgram(self.$.program);
+        gl.attachShader(program, self.$.vertexShader);
+        gl.attachShader(program, self.$.fragmentShader);
+        gl.linkProgram(program);
+
+        program.uTransform = gl.getUniformLocation(program, 'uTransform');
+        program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
+        program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
+        program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
+
+        self.$.program = program;
     };
 
 
@@ -70,23 +77,19 @@ function()
         var geom = renderable.geometry,
             program = this.$.program;
 
-        program.uTransform = gl.getUniformLocation(program, 'uTransform');
         gl.uniformMatrix4fv(program.uTransform, false, renderable.sceneTransform.data);
 
-        program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
         gl.enableVertexAttribArray(program.aVertexPosition);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
         gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
         if (this.$.needsVertexColors) {
-            program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
             gl.enableVertexAttribArray(program.aVertexColor);
             gl.bindBuffer(gl.ARRAY_BUFFER, geom.getColorBuffer(gl));
             gl.vertexAttribPointer(program.aVertexColor, 3, gl.FLOAT, false, 0, 0);
         }
 
         if (this.$.needsUvs) {
-            program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
             gl.enableVertexAttribArray(program.aTexCoord);
             gl.bindBuffer(gl.ARRAY_BUFFER, geom.getUVBuffer(gl));
             gl.vertexAttribPointer(program.aTexCoord, 2, gl.FLOAT, false, 0, 0);
