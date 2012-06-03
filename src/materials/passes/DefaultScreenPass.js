@@ -33,11 +33,16 @@ function()
             methods = this.$.material.$.methods,
             calls = [];
 
+        i = methods.length;
+        this.$.numSamplersNeeded = 0;
+        while (i-->0) {
+            this.$.needsUvs = this.$.needsUvs || methods[i].needsUvs;
+            this.$.needsVertexColors = this.$.needsVertexColors || methods[i].needsVertexColors;
+            this.$.numSamplersNeeded += (methods[i].numSamplersNeeded || 0);
+        }
+
         code = [
-            // TODO: Check dependencies
-            'varying lowp vec4 vColor;',
-            'varying lowp vec2 vTexCoord;',
-            'uniform sampler2D uTexture0;',
+            this.getFragmentCodeHeader(),
 
             // TODO: Create ambient method type
             'void ambient(out lowp vec4 outColor) {',

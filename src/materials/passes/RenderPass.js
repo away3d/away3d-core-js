@@ -9,7 +9,11 @@ function()
             vertexShader: null,
             fragmentShader: null,
             vertexShaderDirty: true,
-            fragmentShaderDirty: true
+            fragmentShaderDirty: true,
+
+            needsUvs: false,
+            needsVertexColors: false,
+            numSamplersNeeded: 0
         };
     };
 
@@ -17,6 +21,17 @@ function()
     var updateProgram = function(self, gl)
     {
         self.$.program = self.$.program || gl.createProgram();
+
+        if (self.$.fragmentShaderDirty) {
+            var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fs, self.getFragmentCode());
+            gl.compileShader(fs);
+
+            // TODO: Check for compile errors
+
+            self.$.fragmentShader = fs;
+            self.$.fragmentShaderDirty = false;
+        }
 
         if (self.$.vertexShaderDirty) {
             var vs = self.$.vertexShader || gl.createShader(gl.VERTEX_SHADER);
@@ -27,15 +42,6 @@ function()
 
             self.$.vertexShader = vs;
             self.$.vertexShaderDirty = false;
-        }
-
-        if (self.$.fragmentShaderDirty) {
-            var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(fs, self.getFragmentCode());
-            gl.compileShader(fs);
-
-            self.$.fragmentShader = fs;
-            self.$.fragmentShaderDirty = false;
         }
 
         gl.attachShader(self.$.program, self.$.vertexShader);
@@ -72,15 +78,19 @@ function()
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
         gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
-        program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
-        gl.enableVertexAttribArray(program.aVertexColor);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geom.getColorBuffer(gl));
-        gl.vertexAttribPointer(program.aVertexColor, 3, gl.FLOAT, false, 0, 0);
+        if (this.$.needsVertexColors) {
+            program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
+            gl.enableVertexAttribArray(program.aVertexColor);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geom.getColorBuffer(gl));
+            gl.vertexAttribPointer(program.aVertexColor, 3, gl.FLOAT, false, 0, 0);
+        }
 
-        program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
-        gl.enableVertexAttribArray(program.aTexCoord);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geom.getUVBuffer(gl));
-        gl.vertexAttribPointer(program.aTexCoord, 2, gl.FLOAT, false, 0, 0);
+        if (this.$.needsUvs) {
+            program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
+            gl.enableVertexAttribArray(program.aTexCoord);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geom.getUVBuffer(gl));
+            gl.vertexAttribPointer(program.aTexCoord, 2, gl.FLOAT, false, 0, 0);
+        }
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.getIndexBuffer(gl));
         gl.drawElements(gl.TRIANGLES, geom.$.indexData.length, gl.UNSIGNED_SHORT, 0);
@@ -93,32 +103,64 @@ function()
     };
 
 
+    RenderPass.prototype.getFragmentCodeHeader = function()
+    {
+        var i, lines = [];
+
+        if (this.$.needsUvs) lines.push('varying lowp vec2 vTexCoord;');
+        if (this.$.needsVertexColors) lines.push('varying lowp vec3 vColor;');
+
+        for (i=0; i<this.$.numSamplersNeeded; i++) {
+            lines.push('uniform sampler2D uTexture'+i+';');
+        };
+
+        return lines.join('\n');
+    };
+
+
     RenderPass.prototype.getVertexCode = function() 
     {
-        return [
-            'attribute vec3 aVertexPosition;',
-            'attribute vec3 aVertexColor;',
-            'attribute vec2 aTexCoord;',
+        var lines, header, body;
+        
+        header = [
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
-            'varying vec4 vColor;',
-            'varying vec2 vTexCoord;',
-            'void main(void) {',
-            '  vColor = vec4(aVertexColor, 1.0);',
-            '  vTexCoord = aTexCoord;',
-            '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
-            '}'
-        ].join('\n');
+            'attribute vec3 aVertexPosition;',
+        ];
 
+        body = [ 'void main(void) {' ];
+
+        if (this.$.needsUvs) {
+            header.push(
+                'attribute vec2 aTexCoord;',
+                'varying vec2 vTexCoord;');
+            body.push('  vTexCoord = aTexCoord;');
+        }
+
+        if (this.$.needsVertexColors) {
+            header.push(
+                'attribute vec3 aVertexColor;',
+                'varying vec3 vColor;');
+            body.push('  vColor = aVertexColor;');
+        }
+
+        lines = [];
+        lines.push.apply(lines, header);
+        lines.push.apply(lines, body);
+        lines.push(
+            '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
+            '}');
+
+        return lines.join('\n');
     };
 
 
     RenderPass.prototype.getFragmentCode = function()
     {
+        // TODO: Remove this entirely?
         return [
-            'varying lowp vec4 vColor;',
             'void main(void) {',
-            '  gl_FragColor = vColor;',
+            '  gl_FragColor = vec4(1.0, 0.75, 0.0, 1.0);',
             '}'
         ].join('\n');
     };

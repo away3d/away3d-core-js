@@ -3,6 +3,7 @@ function()
 {
     var ColorMethod = function()
     {
+        this.needsVertexColors = true;
     };
 
     ColorMethod.prototype.activate = function(gl)
@@ -12,7 +13,7 @@ function()
     ColorMethod.prototype.getFragmentCode = function()
     {
         return [
-            'outColor = vColor;'
+            'outColor = vec4(vColor, 1.0);'
         ];
     };
 

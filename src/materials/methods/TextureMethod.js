@@ -7,6 +7,9 @@ function()
         this.$ = {
             texture: texture
         };
+
+        this.needsUvs = true;
+        this.numSamplersNeeded = 1;
     };
 
 
