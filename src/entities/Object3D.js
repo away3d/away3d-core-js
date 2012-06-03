@@ -25,6 +25,7 @@ function()
         };
     };
 
+
     Object.defineProperty(Object3D.prototype, 'x', {
         get: function() { return this.$.x; },
         set: function(value) {
@@ -141,14 +142,18 @@ function()
     });
 
 
+    var tmpRot = new away3d.Matrix3D(),
+        tmpTrans = new away3d.Matrix3D(),
+        tmpScale = new away3d.Matrix3D();
+
     var updateTransform = function(self)
     {
-        // TODO: Optimize this
-        var trans = away3d.Matrix3D.Translation(self.$.x, self.$.y, self.$.z),
-            rot = away3d.Matrix3D.Rotation(self.$.rotationX, self.$.rotationY, self.$.rotationZ),
-            scale = away3d.Matrix3D.Scale(self.$.scaleX, self.$.scaleY, self.$.scaleZ);
+        // TODO: Research faster way to recompose matrix
+        var trans = away3d.Matrix3D.Translation(self.$.x, self.$.y, self.$.z, tmpTrans),
+            rot = away3d.Matrix3D.Rotation(self.$.rotationX, self.$.rotationY, self.$.rotationZ, tmpRot),
+            scale = away3d.Matrix3D.Scale(self.$.scaleX, self.$.scaleY, self.$.scaleZ, tmpScale);
 
-        self.$.transform = new away3d.Matrix3D();
+        self.$.transform.identity();
         self.$.transform.mul(rot, trans);
         self.$.transform.mul(self.$.transform, scale);
 
