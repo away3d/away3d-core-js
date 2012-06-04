@@ -114,6 +114,8 @@ function()
         switch (msg.command) {
             case 'parse':
                 this.parse(msg.data);
+                self.close();
+                break;
         }
     };
 
