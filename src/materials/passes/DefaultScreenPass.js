@@ -45,7 +45,7 @@ function()
             this.getFragmentCodeHeader(),
 
             // TODO: Create ambient method type
-            'void ambient(out lowp vec4 outColor) {',
+            'void ambient(out vec4 outColor) {',
             '  outColor = vec4(1.0, 1.0, 1.0, 1.0);',
             '}'
         ];
@@ -53,7 +53,7 @@ function()
         len = methods.length;
         for (i=0; i<len; i++) {
             var name = 'method'+i;
-            code.push('void '+name+'(in lowp vec4 inColor, out lowp vec4 outColor) {');
+            code.push('void '+name+'(in vec4 inColor, out vec4 outColor) {');
             code.push.apply(code, methods[i].getFragmentCode());
             code.push('}');
 
@@ -62,7 +62,7 @@ function()
 
         code.push.apply(code, [
             'void main(void) {',
-            '  lowp vec4 tmp;',
+            '  vec4 tmp;',
             '  ambient(tmp);'
         ]);
         code.push.apply(code, calls);

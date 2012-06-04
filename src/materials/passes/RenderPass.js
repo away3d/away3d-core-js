@@ -28,6 +28,7 @@ function()
             gl.compileShader(fs);
 
             // TODO: Check for compile errors
+            console.log(self.getFragmentCode());
 
             self.$.fragmentShader = fs;
             self.$.fragmentShaderDirty = false;
@@ -39,6 +40,7 @@ function()
             gl.compileShader(vs);
 
             // TODO: Check for compile errors
+            console.log(self.getVertexCode());
 
             self.$.vertexShader = vs;
             self.$.vertexShaderDirty = false;
@@ -108,10 +110,17 @@ function()
 
     RenderPass.prototype.getFragmentCodeHeader = function()
     {
-        var i, lines = [];
+        var i, lines = [
+            '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+            'precision highp float;',
+            '#else',
+            'precision lowp float;',
+            '#endif',
+            'precision lowp int;'
+        ];
 
-        if (this.$.needsUvs) lines.push('varying lowp vec2 vTexCoord;');
-        if (this.$.needsVertexColors) lines.push('varying lowp vec3 vColor;');
+        if (this.$.needsUvs) lines.push('varying vec2 vTexCoord;');
+        if (this.$.needsVertexColors) lines.push('varying vec3 vColor;');
 
         for (i=0; i<this.$.numSamplersNeeded; i++) {
             lines.push('uniform sampler2D uTexture'+i+';');
@@ -126,6 +135,8 @@ function()
         var lines, header, body;
         
         header = [
+            'precision highp float;',
+            'precision lowp int;',
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
             'attribute vec3 aVertexPosition;',
