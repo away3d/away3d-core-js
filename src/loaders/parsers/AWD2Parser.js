@@ -115,6 +115,9 @@ function()
                 }
                 else if (strType == 2) {
                     while (self.$.offset < strEnd) {
+                        var i0 = self.readUint16();
+                        data.indexData.push(self.readUint16());
+                        data.indexData.push(i0);
                         data.indexData.push(self.readUint16());
                     }
                 }
