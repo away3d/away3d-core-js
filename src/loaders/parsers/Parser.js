@@ -62,12 +62,20 @@ function()
             'parser.postMessage = function(msg) { self.postMessage(msg); };'
         ].join('\n');
 
-        var BB = window.WebKitBlobBuilder || window.MozBlobBuilder;
-        var URL = window.URL || window.webkitURL;
-        var bb = new BB();
-        bb.append(script);
-        var url = URL.createObjectURL(bb.getBlob());
-        var worker = new Worker(url);
+        var URL, BB, blob, url, worker;
+
+        URL = window.URL || window.webkitURL;
+        BB = window.WebKitBlobBuilder || window.MozBlobBuilder;
+        if (BB) {
+            var bb = new BB();
+            bb.append(script);
+            blob = bb.getBlob();
+        }
+        else {
+            blob = new Blob([script]);
+        }
+        url = URL.createObjectURL(blob);
+        worker = new Worker(url);
 
         var self = this;
         worker.onmessage = function(ev) {
