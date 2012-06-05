@@ -28,7 +28,6 @@ function()
             gl.compileShader(fs);
 
             // TODO: Check for compile errors
-            console.log(self.getFragmentCode());
 
             self.$.fragmentShader = fs;
             self.$.fragmentShaderDirty = false;
@@ -40,7 +39,6 @@ function()
             gl.compileShader(vs);
 
             // TODO: Check for compile errors
-            console.log(self.getVertexCode());
 
             self.$.vertexShader = vs;
             self.$.vertexShaderDirty = false;
