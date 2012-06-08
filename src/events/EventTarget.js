@@ -52,7 +52,10 @@ function()
         // TODO: Don't ignore evt.eventPhase
         len = listeners.length;
         for (i=0; i<len; i++) {
-            listeners[i].listener.call(this, evt);
+            var listener = listeners[i].listener;
+            var func = listener.call? listener : listener.handleEvent;
+
+            func.call(this, evt);
         }
     };
 
