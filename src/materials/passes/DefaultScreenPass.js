@@ -1,11 +1,14 @@
 away3d.module('away3d.DefaultScreenPass', [
-    'away3d.RenderPass'
+    'away3d.RenderPass',
+    'away3d.ShaderMethodUtil'
 ],
 function()
 {
     var DefaultScreenPass = function(material)
     {
         away3d.RenderPass.call(this, material);
+
+        this.$.methodUtil = new away3d.ShaderMethodUtil();
     };
 
 
@@ -30,6 +33,7 @@ function()
     DefaultScreenPass.prototype.getFragmentCode = function()
     {
         var i, len, code,
+            util = this.$.methodUtil,
             methods = this.$.material.$.methods,
             calls = [];
 
@@ -50,14 +54,19 @@ function()
             '}'
         ];
 
+        util.reset();
+
         len = methods.length;
         for (i=0; i<len; i++) {
             var name = 'method'+i;
             code.push('void '+name+'(in vec4 inColor, out vec4 outColor) {');
-            code.push.apply(code, methods[i].getFragmentCode());
+            code.push.apply(code, methods[i].getFragmentCode(util));
             code.push('}');
 
             calls.push('  '+name+'(tmp,tmp);');
+
+            // Increment the number of samplers used
+            util.$.firstSamplerIndex += (methods[i].numSamplersNeeded || 0);
         };
 
         code.push.apply(code, [

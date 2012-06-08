@@ -22,10 +22,10 @@ function()
     };
 
 
-    TextureMethod.prototype.getFragmentCode = function()
+    TextureMethod.prototype.getFragmentCode = function(util)
     {
         return [
-            'outColor = texture2D(uTexture0, vTexCoord);'
+            'outColor = texture2D('+util.getSampler(0)+', vTexCoord);'
         ];
     };
 
