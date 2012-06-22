@@ -220,6 +220,11 @@ class ModuleTranslator(object):
     def __init__(self, module_format):
         self.module_format = module_format
 
+    def print_header(self, out_file):
+        if self.module_format == 'away3d':
+            out_file.write('away3d = {}\n')
+            out_file.write('away3d.originOfModule = function() { return "%s"; }\n\n' % out_file.name)
+
     def translate_to_file(self, node, out_file, include_deps=True, comment_file=True):
         if not node.is_module:
             with open(node.file_name, 'r') as in_file:
@@ -287,6 +292,7 @@ def concat(graph, opts):
     chain = graph.evaluate_chain()
 
     translator = ModuleTranslator(opts.module_format)
+    translator.print_header(output)
 
     for node in chain:
         name, ext = os.path.splitext(node.file_name)
