@@ -89,7 +89,7 @@ class DepGraph(object):
 
         mod_re = re.compile('away3d\.module\(\s?["\']([_a-zA-Z0-9.]*)["\']\s?,\s?(.*),\s?function\(\)\s?\{(.*)\}\s?\)\s?;?\s?$', re.DOTALL)
         dep_re = re.compile('["\']([a-zA-Z0-9.]+)["\']')
-        inc_re = re.compile('away3d\.include\(\s*([_a-zA-Z0-9., "\']*),\s*function\(\s*\)', re.DOTALL)
+        inc_re = re.compile('away3d\.include\(\s*([\[\]_a-zA-Z0-9., "\'\s]*),\s*function\(\s*\)', re.DOTALL)
 
         for node in queue:
             # Check if this node has already been checked since
