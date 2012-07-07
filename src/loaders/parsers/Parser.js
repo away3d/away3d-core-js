@@ -137,7 +137,12 @@ function()
 
     Parser.prototype.resetData = function(data, littleEndian)
     {
-        this.$.data = new DataView(data);
+        try {
+            this.$.data = new DataView(data)
+        } catch (err) {
+            this.$.data = new FFDataView(data);
+        }
+
         this.$.littleEndian = littleEndian;
         this.$.length = data.byteLength;
     };
@@ -191,6 +196,142 @@ function()
     {
         return this.$.data.getFloat64((this.$.offset += 8) - 8, true);
     };
+
+
+
+
+    /**
+     * Helper class that simulates a DataView for browsers that do not
+     * support it natively, but do supported typed arrays (Firefox.)
+    */
+    var FFDataView = function(arrayBuffer)
+    {
+        // Because firefox is faster with instance methods and closures,
+		// and this is not a type that will be heavily instantiated, but
+		// that will however need to have fast-executing instance methods,
+		// it makes sense to make an exception and use this pattern here.
+
+        var buf20, buf21,
+            buf40, buf41, buf42, buf43;
+
+        var slice = function(offs, fieldLength)
+        {
+            var bufLen = arrayBuffer.byteLength,
+                end = bufLen - (bufLen % fieldLength) + offs;
+
+            if (end > bufLen)
+                end -= fieldLength;
+
+            return arrayBuffer.slice(offs, end);
+        };
+
+        buf20 = slice(0, 2);
+        buf21 = slice(1, 2);
+
+        buf40 = slice(0, 4);
+        buf41 = slice(1, 4);
+        buf42 = slice(2, 4);
+        buf43 = slice(3, 4);
+
+        var i8 = new Uint8Array(arrayBuffer);
+        var ui8 = new Int8Array(arrayBuffer);
+
+        var i16 = [
+            new Int16Array(buf20),
+            new Int16Array(buf21)
+        ];
+
+        var ui16 = [
+            new Uint16Array(buf20),
+            new Uint16Array(buf21)
+        ];
+
+        var i32 = [
+            new Int32Array(buf40),
+            new Int32Array(buf41),
+            new Int32Array(buf42),
+            new Int32Array(buf43)
+        ];
+
+        var ui32 = [
+            new Uint32Array(buf40),
+            new Uint32Array(buf41),
+            new Uint32Array(buf42),
+            new Uint32Array(buf43)
+        ];
+
+        var f32 = [
+            new Float32Array(buf40),
+            new Float32Array(buf41),
+            new Float32Array(buf42),
+            new Float32Array(buf43)
+        ];
+
+        var f64 = [
+            new Float32Array(slice(0, 8)),
+            new Float32Array(slice(1, 8)),
+            new Float32Array(slice(2, 8)),
+            new Float32Array(slice(3, 8)),
+            new Float32Array(slice(4, 8)),
+            new Float32Array(slice(5, 8)),
+            new Float32Array(slice(6, 8)),
+            new Float32Array(slice(7, 8))
+        ];
+
+        var getMultibyte = function(typedArray, offset, fieldLength)
+        {
+            var arr = offset % fieldLength,
+                idx = (offset-arr) / fieldLength,
+                val = typedArray[arr][idx];
+
+            offset += fieldLength;
+            return val;
+        };
+
+
+        this.getInt8 = function(offset)
+        {
+            return i8[offset];
+        };
+
+        this.getUint8 = function(offset)
+        {
+            return ui8[offset];
+        };
+
+        this.getInt16 = function(offset)
+        {
+            return getMultibyte(i16, offset, 2);
+        };
+
+        this.getUint16 = function(offset)
+        {
+            return getMultibyte(ui16, offset, 2);
+        };
+
+        this.getInt32 = function(offset)
+        {
+            return getMultibyte(i32, offset, 4);
+        };
+
+        this.getUint32 = function(offset)
+        {
+            return getMultibyte(ui32, offset, 4);
+        };
+
+        this.getFloat32 = function(offset)
+        {
+            return getMultibyte(f32, offset, 4);
+        };
+
+        this.getFloat64 = function(offset)
+        {
+            return getMultibyte(f64, offset, 8);
+        };
+    };
+
+
+
 
     return Parser;
 });
