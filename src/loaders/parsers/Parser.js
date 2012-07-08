@@ -207,9 +207,9 @@ function()
     var FFDataView = function(arrayBuffer)
     {
         // Because firefox is faster with instance methods and closures,
-		// and this is not a type that will be heavily instantiated, but
-		// that will however need to have fast-executing instance methods,
-		// it makes sense to make an exception and use this pattern here.
+        // and this is not a type that will be heavily instantiated, but
+        // that will however need to have fast-executing instance methods,
+        // it makes sense to make an exception and use this pattern here.
 
         var buf20, buf21,
             buf40, buf41, buf42, buf43;
