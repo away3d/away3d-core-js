@@ -36,75 +36,24 @@ function()
 
     Parser.prototype.parseAsync = function(data)
     {
-        var loc = String(document.location).substr(0, String(document.location).lastIndexOf('/'));
-        var bSrc = loc + '/' + away3d.originOfModule(Parser);
-        var pSrc = loc + '/' + away3d.originOfModule(this.constructor);
-        // TODO: Check so bSrc != pSrc (which it will be when library is concatenated together)
-        var script = [
-            'var away3d = {};',
-            // TODO: Consider way to make this independent of module format
-            'away3d.module = function(m,d,f) {',
+        try {
+            var worker = initWorker(this.constructor);
 
-            // TODO: Don't hard-code parser name
-            '  if (m=="away3d.AWD2Parser") {',
-            '    away3d.AWD2Parser = f();',
-            '  }',
-            '  else if (m=="away3d.Parser") {',
-            '    away3d.Parser = f();',
-            '  }',
-            '}',
-            'importScripts("'+bSrc+'");',
-            'importScripts("'+pSrc+'");',
+            var self = this;
+            worker.onmessage = function(ev) {
+                var msg = ev.data;
+                self.onWorkerMessage(msg);
+            };
 
-            // TODO: Don't hard-code parser name
-            'var parser = new away3d.AWD2Parser();',
-            'self.onmessage = function(ev) { parser.onMessage(ev); };',
-            'parser.postMessage = function(msg) { self.postMessage(msg); };'
-        ].join('\n');
-
-        var URL, BB, blob, url, worker;
-
-        URL = window.URL || window.webkitURL;
-        BB = window.WebKitBlobBuilder || window.MozBlobBuilder;
-        if (BB) {
-            var bb = new BB();
-            bb.append(script);
-            blob = bb.getBlob();
+            // Send parse command
+            worker.postMessage({
+                command: 'parse',
+                data: data
+            });
         }
-        else {
-            blob = new Blob([script]);
+        catch (err) {
+            this.parse(data);
         }
-        url = URL.createObjectURL(blob);
-        worker = new Worker(url);
-
-        var self = this;
-        worker.onmessage = function(ev) {
-            var msg = ev.data;
-
-            if (msg.command == 'asset') {
-                // TODO: Consider passing this on to FileLoader to avoid including modules
-                switch (msg.assetType) {
-                    case 'geom':
-                        var geom = new away3d.Geometry();
-                        copyAssetInternalData(geom, msg.data);
-
-                        // TODO: Reuse this
-                        var evt = new away3d.Event3D('asset');
-                        evt.asset = geom;
-                        self.dispatchEvent(evt);
-                        break;
-                }
-            }
-            else {
-                console.log('unknown message from parser worker', msg);
-            }
-        };
-
-        // Send parse command
-        worker.postMessage({
-            command: 'parse',
-            data: data
-        });
     };
 
 
@@ -119,9 +68,33 @@ function()
         }
     };
 
+    Parser.prototype.onWorkerMessage = function(msg)
+    {
+        if (msg.command == 'asset') {
+            // TODO: Consider passing this on to FileLoader to avoid including modules
+            switch (msg.assetType) {
+                case 'geom':
+                    var geom = new away3d.Geometry();
+                    copyAssetInternalData(geom, msg.data);
+
+                    // TODO: Reuse this
+                    var evt = new away3d.Event3D('asset');
+                    evt.asset = geom;
+                    this.dispatchEvent(evt);
+                    break;
+            }
+        }
+        else {
+            console.log('unknown message from parser worker', msg);
+        }
+    };
+
     Parser.prototype.postMessage = function(msg)
     {
-        // Overwritten by worker boot-strapping mechanism
+        // Just forward message directly to the handler method belong
+        // to this instance. This is overwritten by worker boot-strapping
+        // mechanism to instead post worker message.
+        this.onWorkerMessage(msg);
     };
 
 
@@ -198,6 +171,50 @@ function()
     };
 
 
+    var initWorker = function(parserConstructor)
+    {
+        var loc = String(document.location).substr(0, String(document.location).lastIndexOf('/'));
+        var bSrc = loc + '/' + away3d.originOfModule(Parser);
+        var pSrc = loc + '/' + away3d.originOfModule(parserConstructor);
+        // TODO: Check so bSrc != pSrc (which it will be when library is concatenated together)
+        var script = [
+            'var away3d = {};',
+            // TODO: Consider way to make this independent of module format
+            'away3d.module = function(m,d,f) {',
+
+            // TODO: Don't hard-code parser name
+            '  if (m=="away3d.AWD2Parser") {',
+            '    away3d.AWD2Parser = f();',
+            '  }',
+            '  else if (m=="away3d.Parser") {',
+            '    away3d.Parser = f();',
+            '  }',
+            '}',
+            'importScripts("'+bSrc+'");',
+            'importScripts("'+pSrc+'");',
+
+            // TODO: Don't hard-code parser name
+            'var parser = new away3d.AWD2Parser();',
+            'self.onmessage = function(ev) { parser.onMessage(ev); };',
+            'parser.postMessage = function(msg) { self.postMessage(msg); };'
+        ].join('\n');
+
+        var URL, BB, blob, url, worker;
+
+        URL = window.URL || window.webkitURL;
+        BB = window.WebKitBlobBuilder || window.MozBlobBuilder;
+        if (BB) {
+            var bb = new BB();
+            bb.append(script);
+            blob = bb.getBlob();
+        }
+        else {
+            blob = new Blob([script]);
+        }
+        url = URL.createObjectURL(blob);
+        
+        return new Worker(url);
+    }
 
 
     /**
