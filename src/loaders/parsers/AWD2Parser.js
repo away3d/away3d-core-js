@@ -45,6 +45,9 @@ function()
                 case 1:
                     parseGeometry(self);
                     break;
+                case 23:
+                    parseMesh(self);
+                    break;
                 default:
                     // Unknown block type
                     self.seek(len);
@@ -143,6 +146,29 @@ function()
         self.seek(4);
 
         self.finalizeAsset('geom', data, self.$.curBlockId);
+    };
+    
+    
+    var parseMesh = function(self)
+    {
+        var parentId, numMaterials, data = {};
+
+        data.parent = self.readUint32();
+
+        // TODO: Implement matrix
+        self.seek(48);
+
+        data.name = parseVarStr(self);
+        data.geometry = self.readUint32();
+
+        // TODO: Implement materials
+        numMaterials = self.readUint16();
+        self.seek(numMaterials*4);
+
+        // TODO: Deal with properties and user attributes
+        self.seek(8);
+
+        self.finalizeAsset('mesh', data, self.$.curBlockId);
     };
 
 
