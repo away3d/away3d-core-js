@@ -26,15 +26,6 @@ function()
     }
 
 
-    var copyAssetInternalData = function(asset, data)
-    {
-        var prop;
-        for (prop in data) {
-            asset.$[prop] = data[prop];
-        }
-    };
-
-
     Parser.prototype.parseAsync = function(data)
     {
         try {
@@ -78,7 +69,10 @@ function()
             switch (msg.assetType) {
                 case 'geom':
                     asset = new away3d.Geometry();
-                    copyAssetInternalData(asset, msg.data);
+                    asset.$.vertexData = msg.data.vertexData;
+                    asset.$.indexData = msg.data.indexData;
+                    asset.$.colorData = msg.data.colorData;
+                    asset.$.uvData = msg.data.uvData;
                     break;
             }
 
