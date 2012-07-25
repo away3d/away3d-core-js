@@ -79,16 +79,15 @@ function()
                 case 'geom':
                     asset = new away3d.Geometry();
                     copyAssetInternalData(asset, msg.data);
-
-                    // TODO: Reuse this
-                    var evt = new away3d.Event3D('asset');
-                    evt.asset = asset;
-                    this.dispatchEvent(evt);
                     break;
             }
 
             if (msg.id && asset) {
                 this.$.finalizedAssets[msg.id] = asset;
+
+                var evt = new away3d.Event3D('asset');
+                evt.asset = asset;
+                this.dispatchEvent(evt);
             }
         }
         else {
