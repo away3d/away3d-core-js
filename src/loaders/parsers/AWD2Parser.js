@@ -142,7 +142,7 @@ function()
         // TODO: Deal with user attributes
         self.seek(4);
 
-        self.finalizeAsset('geom', data);
+        self.finalizeAsset('geom', data, self.$.curBlockId);
     };
 
 

@@ -16,6 +16,7 @@ function()
         this.$.length = 0;
         this.$.littleEndian = true;
         this.$.data = null;
+        this.$.finalizedAssets = [];
     };
 
 
@@ -71,17 +72,23 @@ function()
     Parser.prototype.onWorkerMessage = function(msg)
     {
         if (msg.command == 'asset') {
+            var asset;
+
             // TODO: Consider passing this on to FileLoader to avoid including modules
             switch (msg.assetType) {
                 case 'geom':
-                    var geom = new away3d.Geometry();
-                    copyAssetInternalData(geom, msg.data);
+                    asset = new away3d.Geometry();
+                    copyAssetInternalData(asset, msg.data);
 
                     // TODO: Reuse this
                     var evt = new away3d.Event3D('asset');
-                    evt.asset = geom;
+                    evt.asset = asset;
                     this.dispatchEvent(evt);
                     break;
+            }
+
+            if (msg.id && asset) {
+                this.$.finalizedAssets[msg.id] = asset;
             }
         }
         else {
@@ -98,11 +105,12 @@ function()
     };
 
 
-    Parser.prototype.finalizeAsset = function(type, data)
+    Parser.prototype.finalizeAsset = function(type, data, id)
     {
         this.postMessage({
             command: 'asset',
             assetType: type,
+            id: id,
             data: data
         });
     };
