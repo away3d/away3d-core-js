@@ -74,6 +74,19 @@ function()
                     asset.$.colorData = msg.data.colorData;
                     asset.$.uvData = msg.data.uvData;
                     break;
+                
+                case 'mesh':
+                    var geom = resolveAsset(msg.data.geometry, this.$.finalizedAssets),
+                        mtl = resolveAsset(msg.data.material, this.$.finalizedAssets),
+                        par = resolveAsset(msg.data.parent, this.$.finalizedAssets);
+
+                    asset = new away3d.Mesh(geom, mtl);
+                    if (par) {
+                        par.appendChild(asset);
+                    }
+
+                    // TODO: Implement transform matrix
+                    break;
             }
 
             if (msg.id && asset) {
@@ -169,6 +182,16 @@ function()
     Parser.prototype.readFloat64 = function()
     {
         return this.$.data.getFloat64((this.$.offset += 8) - 8, true);
+    };
+
+
+    var resolveAsset = function(id, finalizedAssets)
+    {
+        if (id) {
+            return finalizedAssets[id];
+        }
+
+        return null;
     };
 
 
