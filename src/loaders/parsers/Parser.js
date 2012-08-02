@@ -1,7 +1,9 @@
 away3d.module('away3d.Parser', [
     'away3d.EventTarget',
     'away3d.Event3D',
-    'away3d.Geometry'
+    'away3d.ImageTexture',
+    'away3d.Geometry',
+    'away3d.Mesh'
 ],
 function()
 {
@@ -87,6 +89,10 @@ function()
 
                     // TODO: Implement transform matrix
                     break;
+                
+                case 'texture':
+                    asset = new away3d.ImageTexture(msg.data);
+                    break;
             }
 
             if (msg.id && asset) {
@@ -130,6 +136,7 @@ function()
             this.$.data = new FFDataView(data);
         }
 
+        this.$.buffer = data;
         this.$.littleEndian = littleEndian;
         this.$.length = data.byteLength;
     };

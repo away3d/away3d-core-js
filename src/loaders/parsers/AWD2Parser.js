@@ -48,6 +48,9 @@ function()
                 case 23:
                     parseMesh(self);
                     break;
+                case 82:
+                    parseTexture(self);
+                    break;
                 default:
                     // Unknown block type
                     self.seek(len);
@@ -170,6 +173,44 @@ function()
 
         self.finalizeAsset('mesh', data, self.$.curBlockId);
     };
+
+
+    var parseTexture = function(self)
+    {
+        var name, type, len;
+
+        name = parseVarStr(self);
+        type = self.readUint8();
+        len = self.readUint32();
+
+        if (type == 0) {
+            // TODO: Support external textures
+        }
+        else {
+            var blob, reader;
+
+            blob = new Blob([self.$.buffer]);
+            blob.slice = blob.slice || blob.mozSlice || blob.webkitSlice;
+            blob = blob.slice(self.$.offset, self.$.offset+len, 'image/png');
+            self.seek(len);
+
+            // TODO: Use dependency loading system
+
+            reader = new FileReader();
+            reader.onload = function(ev) {
+                var img = new Image();
+                img.onload = function(ev) {
+                    self.finalizeAsset('texture', img, self.$.curBlockId);
+                };
+                img.src = reader.result;
+                document.body.appendChild(img);
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        // TODO: Deal with properties and user attributes
+        self.seek(8);
+    }
 
 
     AWD2Parser.prototype.parse = function(data)
