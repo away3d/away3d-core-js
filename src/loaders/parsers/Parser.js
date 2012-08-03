@@ -19,6 +19,7 @@ function()
         this.$.littleEndian = true;
         this.$.data = null;
         this.$.finalizedAssets = [];
+        this.$.paused = false;
     };
 
 
@@ -60,7 +61,20 @@ function()
 
     Parser.prototype.shouldContinue = function()
     {
-        return true;
+        return !this.$.paused;
+    };
+
+
+    Parser.prototype.pauseAndRetrieveDependencies = function()
+    {
+        this.$.paused = true;
+    };
+
+
+    Parser.prototype.resumeAfterDependencies = function()
+    {
+        this.$.paused = false;
+        this.proceedParsing();
     };
 
 

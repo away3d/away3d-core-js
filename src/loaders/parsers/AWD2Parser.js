@@ -197,6 +197,8 @@ function()
         type = self.readUint8();
         len = self.readUint32();
 
+        self.pauseAndRetrieveDependencies();
+
         if (type == 0) {
             // TODO: Support external textures
         }
@@ -215,6 +217,7 @@ function()
                 var img = new Image();
                 img.onload = function(ev) {
                     self.finalizeAsset('texture', img, self.$.curBlockId);
+                    self.resumeAfterDependencies();
                 };
                 img.src = reader.result;
                 document.body.appendChild(img);
