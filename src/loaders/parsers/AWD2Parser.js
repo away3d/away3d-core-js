@@ -7,11 +7,25 @@ function()
     {
         away3d.Parser.call(this);
         this.$.curBlockId = 0;
+        this.$.parsedHeader = false;
     };
 
 
     AWD2Parser.prototype = new away3d.Parser();
     AWD2Parser.prototype.constructor = AWD2Parser;
+
+
+    AWD2Parser.prototype.proceedParsing = function(data)
+    {
+        if (!this.$.parsedHeader) {
+            this.$.parsedHeader = true;
+            parseHeader(this);
+        }
+
+        while (this.hasData() && this.shouldContinue()) {
+            parseNextBlock(this);
+        }
+    };
 
 
     var parseHeader = function(self)
@@ -212,18 +226,6 @@ function()
         self.seek(8);
     }
 
-
-    AWD2Parser.prototype.parse = function(data)
-    {
-
-        this.resetData(data, true);
-
-        parseHeader(this);
-
-        while (this.hasData()) {
-            parseNextBlock(this);
-        }
-    };
 
     return AWD2Parser;
 });

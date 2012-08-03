@@ -51,6 +51,19 @@ function()
     };
 
 
+    Parser.prototype.parse = function(data)
+    {
+        this.resetData(data, true); // TODO: Make endianess configurable
+        this.proceedParsing();
+    };
+
+
+    Parser.prototype.shouldContinue = function()
+    {
+        return true;
+    };
+
+
     Parser.prototype.onMessage = function(ev)
     {
         var msg = ev.data;
