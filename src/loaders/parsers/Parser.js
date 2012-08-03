@@ -33,23 +33,32 @@ function()
 
     Parser.prototype.parseAsync = function(data)
     {
-        try {
-            var worker = initWorker(this.constructor);
-
-            var self = this;
-            worker.onmessage = function(ev) {
-                var msg = ev.data;
-                self.onWorkerMessage(msg);
-            };
-
-            // Send parse command
-            worker.postMessage({
-                command: 'parse',
-                data: data
-            });
-        }
-        catch (err) {
+        if (this.forceSingleThreaded) {
+            // TODO: Implement green-threading
             this.parse(data);
+        }
+        else {
+            try {
+                var worker = initWorker(this.constructor);
+
+                var self = this;
+                worker.onmessage = function(ev) {
+                    var msg = ev.data;
+                    self.onWorkerMessage(msg);
+                };
+
+                // Send parse command
+                worker.postMessage({
+                    command: 'parse',
+                    data: data
+                });
+            }
+            catch (err) {
+                // Initializing and starting the worker failed, so
+                // revert to single-threaded parsing after all.
+                // TODO: Implement green-threading
+                this.parse(data);
+            }
         }
     };
 
