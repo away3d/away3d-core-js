@@ -126,6 +126,7 @@ function()
         },
         set: function(value) {
             // TODO: Invalidate transformation properties (x, y, z etc)
+            this.$.transform = value;
             this.$.transformDirty = false;
             this.invalidateSceneTransform();
         }
