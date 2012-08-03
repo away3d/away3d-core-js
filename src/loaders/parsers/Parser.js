@@ -97,28 +97,15 @@ function()
             // TODO: Consider passing this on to FileLoader to avoid including modules
             switch (msg.assetType) {
                 case 'geom':
-                    asset = new away3d.Geometry();
-                    asset.$.vertexData = msg.data.vertexData;
-                    asset.$.indexData = msg.data.indexData;
-                    asset.$.colorData = msg.data.colorData;
-                    asset.$.uvData = msg.data.uvData;
+                    asset = finalizeGeometry(msg);
                     break;
                 
                 case 'mesh':
-                    var geom = resolveAsset(msg.data.geometry, this.$.finalizedAssets),
-                        mtl = resolveAsset(msg.data.material, this.$.finalizedAssets),
-                        par = resolveAsset(msg.data.parent, this.$.finalizedAssets);
-
-                    asset = new away3d.Mesh(geom, mtl);
-                    if (par) {
-                        par.appendChild(asset);
-                    }
-
-                    // TODO: Implement transform matrix
+                    asset = finalizeMesh(msg, this.$.finalizedAssets);
                     break;
                 
                 case 'texture':
-                    asset = new away3d.ImageTexture(msg.data);
+                    asset = finalizeTexture(msg);
                     break;
             }
 
@@ -216,6 +203,43 @@ function()
     Parser.prototype.readFloat64 = function()
     {
         return this.$.data.getFloat64((this.$.offset += 8) - 8, true);
+    };
+
+
+    var finalizeGeometry = function(msg)
+    {
+        var asset = new away3d.Geometry();
+        asset.$.vertexData = msg.data.vertexData;
+        asset.$.indexData = msg.data.indexData;
+        asset.$.colorData = msg.data.colorData;
+        asset.$.uvData = msg.data.uvData;
+
+        return asset;
+    };
+
+    
+    var finalizeMesh = function(msg, finalizedAssets)
+    {
+        var geom = resolveAsset(msg.data.geometry, finalizedAssets),
+            mtl = resolveAsset(msg.data.material, finalizedAssets),
+            par = resolveAsset(msg.data.parent, finalizedAssets),
+            asset = new away3d.Mesh(geom, mtl);
+
+        if (par) {
+            par.appendChild(asset);
+        }
+
+        // TODO: Implement transform matrix
+
+        return asset;
+    };
+
+
+    var finalizeTexture = function(msg)
+    {
+        var asset = new away3d.ImageTexture(msg.data);
+
+        return asset;
     };
 
 
