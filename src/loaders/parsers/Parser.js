@@ -1,6 +1,8 @@
 away3d.module('away3d.Parser', [
     'away3d.EventTarget',
     'away3d.Event3D',
+    'away3d.DefaultMaterial',
+    'away3d.TextureMethod',
     'away3d.ImageTexture',
     'away3d.Geometry',
     'away3d.Mesh'
@@ -102,6 +104,10 @@ function()
                 
                 case 'mesh':
                     asset = finalizeMesh(msg, this.$.finalizedAssets);
+                    break;
+
+                case 'material':
+                    asset = finalizeMaterial(msg, this.$.finalizedAssets);
                     break;
                 
                 case 'texture':
@@ -230,6 +236,22 @@ function()
         }
 
         // TODO: Implement transform matrix
+
+        return asset;
+    };
+
+
+    var finalizeMaterial = function(msg, finalizedAssets)
+    {
+        var asset = new away3d.DefaultMaterial;
+
+        if (msg.data.texture) {
+            var tex = resolveAsset(msg.data.texture, finalizedAssets);
+
+            asset.addMethod(new away3d.TextureMethod(tex));
+        }
+        else {
+        }
 
         return asset;
     };

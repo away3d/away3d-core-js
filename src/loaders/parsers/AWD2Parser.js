@@ -62,6 +62,9 @@ function()
                 case 23:
                     parseMesh(self);
                     break;
+                case 81:
+                    parseMaterial(self);
+                    break;
                 case 82:
                     parseTexture(self);
                     break;
@@ -273,7 +276,46 @@ function()
 
         // TODO: Deal with properties and user attributes
         self.seek(8);
-    }
+    };
+
+
+    parseMaterial = function(self)
+    {
+        var name, type, props, data = {},
+            numMethods, methodsParsed = 0;
+
+        name = parseVarStr(self);
+        type = self.readUint8();
+        numMethods = self.readUint8();
+
+        // Read material numerical properties
+        // (1=color, 2=bitmap url, 10=alpha, 11=alpha_blending, 12=alpha_threshold, 13=repeat)
+        props = parseProperties(self, {
+            1: 'uint32', 2: 'uint32' });
+
+        // TODO: Don't just skip user attributes
+        self.seek(4);
+
+        while (methodsParsed < numMethods) {
+            var methodType = self.readUint8();
+            parseProperties(self);
+            // TODO: Don't just skip user attributes
+            self.seek(4);
+        }
+
+        if (type == 1) {
+            // Color material
+            // TODO: Don't hard-code
+            data.color = props[1];
+        }
+        else if (type == 2) {
+            // Texture material
+            // TODO: Don't hard-code
+            data.texture = props[2];
+        }
+
+        self.finalizeAsset('material', data, self.$.curBlockId);
+    };
 
 
     return AWD2Parser;
