@@ -5,7 +5,8 @@ away3d.module('away3d.Parser', [
     'away3d.TextureMethod',
     'away3d.ImageTexture',
     'away3d.Geometry',
-    'away3d.Mesh'
+    'away3d.Mesh',
+    'away3d.Matrix3D'
 ],
 function()
 {
@@ -238,7 +239,10 @@ function()
         var geom = resolveAsset(msg.data.geometry, finalizedAssets),
             mtl = resolveAsset(msg.data.material, finalizedAssets),
             par = resolveAsset(msg.data.parent, finalizedAssets),
-            asset = new away3d.Mesh(geom, mtl);
+            asset;
+            
+        asset = new away3d.Mesh(geom, mtl);
+        asset.transform = new away3d.Matrix3D(msg.data.transform);
 
         if (par) {
             par.appendChild(asset);
