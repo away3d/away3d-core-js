@@ -227,9 +227,13 @@ function()
         data.name = parseVarStr(self);
         data.geometry = self.readUint32();
 
-        // TODO: Implement materials
+        // TODO: Implement support for multiple materials
         numMaterials = self.readUint16();
-        self.seek(numMaterials*4);
+        while (numMaterials--) {
+            var mtl = self.readUint32();
+            if (!data.material)
+                data.material = mtl;
+        }
 
         // TODO: Deal with properties and user attributes
         self.seek(8);
