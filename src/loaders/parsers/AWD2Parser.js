@@ -84,10 +84,56 @@ function()
         return '';
     };
 
-    var parseProperties = function(self)
+    var parseAttrValue = function(self, type, len)
     {
-        // TODO: Don't skip properties
-        self.seek(self.readUint32());
+        var elemLen, readFunc;
+
+        switch (type) {
+            case 'uint32':
+                elemLen = 4;
+                readFunc = self.readUint32;
+                break;
+        }
+
+        if (elemLen < len) {
+            var list, numRead, numElems;
+            
+            list = [];
+            numRead = 0;
+            numElems = len / elemLen;
+            while (numRead < numElems) {
+                list.push(readFunc.call(self));
+                numRead++;
+            }
+            
+            return list;
+        }
+        else {
+            return readFunc.call(self);
+        }
+    };
+
+    var parseProperties = function(self, expected)
+    {
+        var listLen = self.readUint32(),
+            listEnd = self.$.offset + listLen,
+            props = {};
+
+        while (self.$.offset < listEnd) {
+            var key, len, type;
+            
+            key = self.readUint16();
+            len = self.readUint32();
+            if (expected && expected.hasOwnProperty(key)) {
+                type = expected[key];
+                props[key] = parseAttrValue(self, type, len);
+            }
+            else {
+                self.seek(len);
+            }
+        }
+
+        return props;
     };
 
     var parseGeometry = function(self)
