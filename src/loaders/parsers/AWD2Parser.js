@@ -87,6 +87,22 @@ function()
         return '';
     };
 
+    var parseMatrix3D = function(self)
+    {
+        var i = 0, data = [];
+
+        while (i<16) {
+            data[i++] = self.readFloat32(),
+            data[i++] = self.readFloat32(),
+            data[i++] = self.readFloat32(),
+            data[i++] = 0;
+        }
+
+        data[15] = 1.0;
+
+        return data;
+    };
+
     var parseAttrValue = function(self, type, len)
     {
         var elemLen, readFunc;
@@ -220,10 +236,7 @@ function()
         var parentId, numMaterials, data = {};
 
         data.parent = self.readUint32();
-
-        // TODO: Implement matrix
-        self.seek(48);
-
+        data.transform = parseMatrix3D(self);
         data.name = parseVarStr(self);
         data.geometry = self.readUint32();
 
