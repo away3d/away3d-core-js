@@ -263,32 +263,70 @@ function()
         type = self.readUint8();
         len = self.readUint32();
 
-        self.pauseAndRetrieveDependencies();
+        // TODO: Use dependency system
+        //self.pauseAndRetrieveDependencies();
 
         if (type == 0) {
             // TODO: Support external textures
         }
         else {
-            var blob, reader;
+            var str, end, binBuf, binBufLen, encoded, readSixtuple, LOOKUP;
 
-            blob = new Blob([self.$.buffer]);
-            blob.slice = blob.slice || blob.mozSlice || blob.webkitSlice;
-            blob = blob.slice(self.$.offset, self.$.offset+len, 'image/png');
-            self.seek(len);
+            // TODO: Move all of this to ImageParser
+            encoded = [];
+            binBuf = 0;
+            binBufLen = 0;
 
-            // TODO: Use dependency loading system
+            LOOKUP = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                    '0','1','2','3','4','5','6','7','8','9','+','/'];
 
-            reader = new FileReader();
-            reader.onload = function(ev) {
-                var img = new Image();
-                img.onload = function(ev) {
-                    self.finalizeAsset('texture', img, self.$.curBlockId);
-                    self.resumeAfterDependencies();
-                };
-                img.src = reader.result;
-                document.body.appendChild(img);
+            readSixtuple = function(allowFillBuf)
+            {
+                var sixtuple, excess, mask = 0x3f; // mask=111111b
+
+                if (binBufLen < 6) {
+                    if (allowFillBuf) {
+                        var b = self.readUint8();
+                        binBuf = (binBuf << 8) | b;
+                        binBufLen += 8;
+                    }
+                    else {
+                        // Can't fill buffer more, so just produce one last
+                        // sixtet, padded with trailing zeroes.
+                        binBuf = (binBuf << (6-binBufLen));
+                        binBufLen = 6;
+                    }
+                }
+
+                excess = binBufLen - 6;
+                sixtuple = (binBuf >> excess);
+                binBuf &= Math.pow(2, excess)-1;
+                binBufLen -= 6;
+
+                return sixtuple;
             };
-            reader.readAsDataURL(blob);
+
+            end = self.$.offset + len;
+            while (self.$.offset < end || binBufLen > 0) {
+                var b;
+
+                b = readSixtuple(self.$.offset < end);
+                encoded.push(LOOKUP[b]);
+            }
+
+            if (len%3==1) {
+                encoded.push('=', '=');
+            }
+            else if (len%3==2) {
+                encoded.push('=');
+            }
+
+            str = 'data:image/png;base64,'+encoded.join('');
+
+            // TODO: Use dependency system
+            self.finalizeAsset('texture', str, self.$.curBlockId);
+            //self.resumeAfterDependencies();
         }
 
         // TODO: Deal with properties and user attributes

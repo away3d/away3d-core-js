@@ -272,7 +272,11 @@ function()
 
     var finalizeTexture = function(msg)
     {
-        var asset = new away3d.ImageTexture(msg.data);
+        var image, asset;
+        
+        image = new Image();
+        image.src = msg.data;
+        asset = new away3d.ImageTexture(image);
 
         return asset;
     };
