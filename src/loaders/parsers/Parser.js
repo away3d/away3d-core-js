@@ -293,7 +293,13 @@ function()
         var loc = String(document.location).substr(0, String(document.location).lastIndexOf('/'));
         var bSrc = loc + '/' + away3d.originOfModule(Parser);
         var pSrc = loc + '/' + away3d.originOfModule(parserConstructor);
-        // TODO: Check so bSrc != pSrc (which it will be when library is concatenated together)
+        var allSrc = [bSrc];
+
+        if (pSrc != bSrc)
+            allSrc.push(pSrc);
+
+        parsers = allSrc.join('","');
+
         var script = [
             'var away3d = {};',
             // TODO: Consider way to make this independent of module format
@@ -307,8 +313,7 @@ function()
             '    away3d.Parser = f();',
             '  }',
             '}',
-            'importScripts("'+bSrc+'");',
-            'importScripts("'+pSrc+'");',
+            'importScripts("'+parsers+'");',
 
             // TODO: Don't hard-code parser name
             'var parser = new away3d.AWD2Parser();',
