@@ -372,8 +372,8 @@ function()
         buf42 = slice(2, 4);
         buf43 = slice(3, 4);
 
-        var i8 = new Uint8Array(arrayBuffer);
-        var ui8 = new Int8Array(arrayBuffer);
+        var i8 = new Int8Array(arrayBuffer);
+        var ui8 = new Uint8Array(arrayBuffer);
 
         var i16 = [
             new Int16Array(buf20),
