@@ -40,16 +40,16 @@ function()
         }
         else {
             try {
-                var worker = initWorker(this.constructor);
+                this.$.worker = initWorker(this.constructor);
 
                 var self = this;
-                worker.onmessage = function(ev) {
+                this.$.worker.onmessage = function(ev) {
                     var msg = ev.data;
-                    self.onWorkerMessage(msg);
+                    self.onMessageFromWorker(msg);
                 };
 
                 // Send parse command
-                worker.postMessage({
+                this.postMessageToWorker({
                     command: 'parse',
                     data: data
                 });
@@ -90,7 +90,7 @@ function()
     };
 
 
-    Parser.prototype.onMessage = function(ev)
+    Parser.prototype.onMessageFromHost = function(ev)
     {
         var msg = ev.data;
         switch (msg.command) {
@@ -101,7 +101,7 @@ function()
         }
     };
 
-    Parser.prototype.onWorkerMessage = function(msg)
+    Parser.prototype.onMessageFromWorker = function(msg)
     {
         if (msg.command == 'asset') {
             var asset;
@@ -138,18 +138,29 @@ function()
         }
     };
 
-    Parser.prototype.postMessage = function(msg)
+    Parser.prototype.postMessageToHost = function(msg)
     {
         // Just forward message directly to the handler method belong
         // to this instance. This is overwritten by worker boot-strapping
         // mechanism to instead post worker message.
-        this.onWorkerMessage(msg);
+        this.onMessageFromWorker(msg);
+    };
+
+
+    Parser.prototype.postMessageToWorker = function(msg)
+    {
+        if (this.$.worker) {
+            this.$.worker.postMessage(msg);
+        }
+        else {
+            this.onMessageFromHost(msg);
+        }
     };
 
 
     Parser.prototype.finalizeAsset = function(type, data, id)
     {
-        this.postMessage({
+        this.postMessageToHost({
             command: 'asset',
             assetType: type,
             id: id,
@@ -321,8 +332,8 @@ function()
 
             // TODO: Don't hard-code parser name
             'var parser = new away3d.AWD2Parser();',
-            'self.onmessage = function(ev) { parser.onMessage(ev); };',
-            'parser.postMessage = function(msg) { self.postMessage(msg); };'
+            'self.onmessage = function(ev) { parser.onMessageFromHost(ev); };',
+            'parser.postMessageToHost = function(msg) { self.postMessage(msg); };'
         ].join('\n');
 
         var URL, BB, blob, url, worker;
