@@ -25,7 +25,8 @@ function()
 
         len = methods.length;
         for (i=0; i<len; i++) {
-            methods[i].activate(gl, this.$.program);
+            if (methods[i].activate)
+                methods[i].activate(gl, this.$.program);
         }
     };
 
@@ -42,6 +43,7 @@ function()
         while (i-->0) {
             this.$.needsUvs = this.$.needsUvs || methods[i].needsUvs;
             this.$.needsVertexColors = this.$.needsVertexColors || methods[i].needsVertexColors;
+            this.$.needsVertexNormals = this.$.needsVertexNormals || methods[i].needsVertexNormals;
             this.$.numSamplersNeeded += (methods[i].numSamplersNeeded || 0);
         }
 

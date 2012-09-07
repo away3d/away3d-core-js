@@ -12,17 +12,22 @@ function()
             vertexData: [],
             indexData: [],
             colorData: [],
+            normalData: [],
             uvData: [],
 
             vertexBuffer: null,
             indexBuffer: null,
             colorBuffer: null,
+            normalBuffer: null,
             uvBuffer: null,
 
             vertexBufferDirty: true,
             indexBufferDirty: true,
             colorBufferDirty: true,
-            uvBufferDirty: true
+            normalBufferDirty: true,
+            uvBufferDirty: true,
+
+            normalsDirty: true,
         };
     };
 
@@ -51,6 +56,31 @@ function()
         }
 
         return this.$.indexBuffer;
+    };
+
+
+    Geometry.prototype.getNormalBuffer = function(gl)
+    {
+        if (this.$.normalsDirty) {
+            var tri;
+
+            // TODO: Calculate proper normals
+            while (this.$.normalData.length < this.$.vertexData.length) {
+                this.$.normalData.push(0, 1, 0);
+            }
+
+            this.$.normalBufferDirty = true;
+        }
+
+        if (this.$.normalBufferDirty) {
+            this.$.normalBuffer = this.$.normalBuffer || gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.$.normalBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.$.normalData), gl.STATIC_DRAW);
+
+            this.$.normalBufferDirty = false;
+        }
+
+        return this.$.normalBuffer;
     };
 
 

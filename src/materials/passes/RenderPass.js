@@ -13,6 +13,7 @@ function()
 
             needsUvs: false,
             needsVertexColors: false,
+            needsVertexNormals: false,
             numSamplersNeeded: 0
         };
     };
@@ -49,8 +50,9 @@ function()
         gl.linkProgram(program);
 
         program.uTransform = gl.getUniformLocation(program, 'uTransform');
-        program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
-        program.aVertexColor = gl.getAttribLocation(program, "aVertexColor");
+        program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+        program.aVertexNormal = gl.getAttribLocation(program, 'aVertexNormal');
+        program.aVertexColor = gl.getAttribLocation(program, 'aVertexColor');
         program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
 
         self.$.program = program;
@@ -82,6 +84,12 @@ function()
         gl.enableVertexAttribArray(program.aVertexPosition);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
         gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+
+        if (this.$.needsVertexNormals) {
+            gl.enableVertexAttribArray(program.aVertexNormal);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geom.getNormalBuffer(gl));
+            gl.vertexAttribPointer(program.aVertexNormal, 3, gl.FLOAT, false, 0, 0);
+        }
 
         if (this.$.needsVertexColors) {
             gl.enableVertexAttribArray(program.aVertexColor);
@@ -119,6 +127,7 @@ function()
 
         if (this.$.needsUvs) lines.push('varying vec2 vTexCoord;');
         if (this.$.needsVertexColors) lines.push('varying vec3 vColor;');
+        if (this.$.needsVertexNormals) lines.push('varying vec3 vNormal;');
 
         for (i=0; i<this.$.numSamplersNeeded; i++) {
             lines.push('uniform sampler2D uTexture'+i+';');
@@ -137,7 +146,7 @@ function()
             'precision lowp int;',
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
-            'attribute vec3 aVertexPosition;',
+            'attribute vec3 aVertexPosition;'
         ];
 
         body = [ 'void main(void) {' ];
@@ -147,6 +156,16 @@ function()
                 'attribute vec2 aTexCoord;',
                 'varying vec2 vTexCoord;');
             body.push('  vTexCoord = aTexCoord;');
+        }
+
+        if (this.$.needsVertexNormals) {
+            header.push(
+                'attribute vec3 aVertexNormal;',
+                'varying vec3 vNormal;');
+            body.push(
+                // TODO: Consider using vec4 for vNormal
+                '  vec4 n = uTransform * vec4(aVertexNormal, 0.0);',
+                '  vNormal = vec3(n.x, n.y, n.z);');
         }
 
         if (this.$.needsVertexColors) {
