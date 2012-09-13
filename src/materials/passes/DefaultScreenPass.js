@@ -52,7 +52,7 @@ function()
 
             // TODO: Create ambient method type
             'void ambient(out vec4 outColor) {',
-            '  outColor = vec4(1.0, 1.0, 1.0, 1.0);',
+            '  outColor = vec4(0.0, 0.0, 0.0, 1.0);',
             '}'
         ];
 

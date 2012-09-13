@@ -25,7 +25,7 @@ function()
     TextureMethod.prototype.getFragmentCode = function(util)
     {
         return [
-            'outColor = texture2D('+util.getSampler(0)+', vTexCoord);'
+            'outColor = inColor * texture2D('+util.getSampler(0)+', vTexCoord);'
         ];
     };
 
