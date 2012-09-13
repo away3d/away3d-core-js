@@ -9,6 +9,8 @@ function()
             screenPass: new away3d.DefaultScreenPass(this),
             methods: []
         };
+
+        this.lights = [];
     };
 
 
