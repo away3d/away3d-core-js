@@ -163,6 +163,7 @@ function()
         data = {
             vertexData: [],
             indexData: [],
+            normalData: [],
             uvData: []
         };
 
@@ -209,6 +210,11 @@ function()
                 else if (strType == 3) {
                     while (self.$.offset < strEnd) {
                         data.uvData.push(self.readFloat32());
+                    }
+                }
+                else if (strType == 4) {
+                    while (self.$.offset < strEnd) {
+                        data.normalData.push(self.readFloat32());
                     }
                 }
                 else {
