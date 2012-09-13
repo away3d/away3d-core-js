@@ -51,7 +51,7 @@ function()
         gl.linkProgram(program);
 
         program.uTransform = gl.getUniformLocation(program, 'uTransform');
-        program.uViewTransform = gl.getUniformLocation(program, 'uViewTransform');
+        program.uCameraPosition = gl.getUniformLocation(program, 'uCameraPosition');
         program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
         program.aVertexNormal = gl.getAttribLocation(program, 'aVertexNormal');
         program.aVertexColor = gl.getAttribLocation(program, 'aVertexColor');
@@ -101,8 +101,8 @@ function()
 
         gl.uniformMatrix4fv(program.uTransform, false, renderable.sceneTransform.data);
 
-        // TODO: Do this in shader somehow?
-        gl.uniformMatrix4fv(program.uViewTransform, false, camera.sceneTransform.data);
+        // TODO: Use scene position!
+        gl.uniform3f(program.uCameraPosition, false, camera.x, camera.y, camera.z);
 
         gl.enableVertexAttribArray(program.aVertexPosition);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
@@ -147,7 +147,8 @@ function()
             '#endif',
             'precision lowp int;',
             'varying vec3 vPosition;',
-            'varying vec3 vViewDir;'
+            'varying vec3 vViewDir;',
+            'vec3 viewDir = normalize(vViewDir);'
         ];
 
         if (this.$.needsUvs) lines.push('varying vec2 vTexCoord;');
@@ -190,7 +191,7 @@ function()
             'precision lowp int;',
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
-            'uniform mat4 uViewTransform;',
+            'uniform vec3 uCameraPosition;',
             'attribute vec3 aVertexPosition;',
             'varying vec3 vPosition;',
             'varying vec3 vViewDir;',
@@ -227,7 +228,7 @@ function()
         lines.push(
             '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
             '  vPosition = gl_Position.xyz;',
-            '  vViewDir = (uViewTransform * vec4(0.0, 0.0, 1.0, 0.0)).xyz;',
+            '  vViewDir = vPosition - uCameraPosition;',
             '}');
 
         return lines.join('\n');

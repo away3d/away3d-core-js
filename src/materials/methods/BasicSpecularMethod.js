@@ -16,7 +16,7 @@ function()
         return [
             'vec3 normal = normalize(vNormal);', // TODO: Do this in header?
             'vec3 refDir = -2.0 * dot(lights[0].xyz, normal) * normal + lights[0].xyz;',
-            'float specular = pow(max(0.0, dot(refDir, vViewDir)), 100.0);', // TODO: Make gloss uniform
+            'float specular = pow(max(0.0, dot(refDir, viewDir)), 100.0);', // TODO: Make gloss uniform
             'outColor = inColor + specular;',
         ];
     };
