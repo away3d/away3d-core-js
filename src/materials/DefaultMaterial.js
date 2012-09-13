@@ -24,9 +24,9 @@ function()
     };
 
 
-    DefaultMaterial.prototype.render = function(renderable, gl)
+    DefaultMaterial.prototype.render = function(renderable, gl, camera)
     {
-        this.$.screenPass.render(renderable, gl);
+        this.$.screenPass.render(renderable, gl, camera);
     };
 
 
