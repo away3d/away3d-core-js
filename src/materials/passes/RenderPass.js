@@ -21,7 +21,8 @@ function()
 
     var updateProgram = function(self, gl)
     {
-        var program = self.$.program || gl.createProgram();
+        var i, numLights,
+            program = self.$.program || gl.createProgram();
 
         if (self.$.fragmentShaderDirty) {
             var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
@@ -50,10 +51,17 @@ function()
         gl.linkProgram(program);
 
         program.uTransform = gl.getUniformLocation(program, 'uTransform');
+        program.uViewTransform = gl.getUniformLocation(program, 'uViewTransform');
         program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
         program.aVertexNormal = gl.getAttribLocation(program, 'aVertexNormal');
         program.aVertexColor = gl.getAttribLocation(program, 'aVertexColor');
         program.aTexCoord = gl.getAttribLocation(program, 'aTexCoord');
+
+        program.uLights = [];
+        numLights = self.$.material.lights.length;
+        for (i=0; i<numLights; i++) {
+            program.uLights[i] = gl.getUniformLocation(program, 'uLights['+i+']');
+        }
 
         self.$.program = program;
     };
@@ -61,7 +69,7 @@ function()
 
     RenderPass.prototype.activate = function(gl, camera)
     {
-        var pm = camera.getViewProjection();
+        var i, numLights, pm = camera.getViewProjection();
 
         if (this.$.vertexShaderDirty || this.$.fragmentShaderDirty) {
             updateProgram(this, gl);
@@ -69,8 +77,20 @@ function()
 
         gl.useProgram(this.$.program);
 
+        // TODO: Move this to link-time
         var uProjection = gl.getUniformLocation(this.$.program, 'uProjection');
         gl.uniformMatrix4fv(uProjection, false, pm.data);
+
+        // TODO: Optimize by setting a vector directly using uniform4fv?
+        numLights = this.$.program.uLights.length;
+        for (i=0; i<numLights; i++) {
+            // TODO: Optimize
+            gl.uniform4f(this.$.program.uLights[i],
+                this.$.material.lights[i].x,
+                this.$.material.lights[i].y,
+                this.$.material.lights[i].z,
+                1.0);
+        }
     };
 
 
@@ -80,6 +100,9 @@ function()
             program = this.$.program;
 
         gl.uniformMatrix4fv(program.uTransform, false, renderable.sceneTransform.data);
+
+        // TODO: Do this in shader somehow?
+        gl.uniformMatrix4fv(program.uViewTransform, false, camera.sceneTransform.data);
 
         gl.enableVertexAttribArray(program.aVertexPosition);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.getVertexBuffer(gl));
@@ -116,13 +139,15 @@ function()
 
     RenderPass.prototype.getFragmentCodeHeader = function()
     {
-        var i, lines = [
+        var i, numLights, lines = [
             '#ifdef GL_FRAGMENT_PRECISION_HIGH',
             'precision highp float;',
             '#else',
             'precision lowp float;',
             '#endif',
-            'precision lowp int;'
+            'precision lowp int;',
+            'varying vec3 vPosition;',
+            'varying vec3 vViewDir;'
         ];
 
         if (this.$.needsUvs) lines.push('varying vec2 vTexCoord;');
@@ -131,7 +156,26 @@ function()
 
         for (i=0; i<this.$.numSamplersNeeded; i++) {
             lines.push('uniform sampler2D uTexture'+i+';');
-        };
+        }
+
+        numLights = this.$.material.lights.length;
+        if (numLights) {
+            lines.push(
+                'const int numLights = '+numLights+';',
+                'uniform vec4 uLights[numLights];',
+                'vec4 lights[numLights];'
+            );
+        }
+
+        lines.push('void initLights() {');
+        for (i=0; i<numLights; i++) {
+            var light = this.$.material.lights[i];
+            lines.push(
+                // TODO: Use scene position
+                '  lights['+i+'] = vec4(normalize(uLights['+i+'].xyz - vPosition), uLights['+i+'].w);'
+            );
+        }
+        lines.push('}');
 
         return lines.join('\n');
     };
@@ -146,7 +190,10 @@ function()
             'precision lowp int;',
             'uniform mat4 uTransform;',
             'uniform mat4 uProjection;',
-            'attribute vec3 aVertexPosition;'
+            'uniform mat4 uViewTransform;',
+            'attribute vec3 aVertexPosition;',
+            'varying vec3 vPosition;',
+            'varying vec3 vViewDir;',
         ];
 
         body = [ 'void main(void) {' ];
@@ -164,8 +211,7 @@ function()
                 'varying vec3 vNormal;');
             body.push(
                 // TODO: Consider using vec4 for vNormal
-                '  vec4 n = uTransform * vec4(aVertexNormal, 0.0);',
-                '  vNormal = vec3(n.x, n.y, n.z);');
+                '  vNormal = (uTransform * vec4(aVertexNormal, 1.0)).xyz;');
         }
 
         if (this.$.needsVertexColors) {
@@ -180,6 +226,8 @@ function()
         lines.push.apply(lines, body);
         lines.push(
             '  gl_Position = uProjection * uTransform * vec4(aVertexPosition, 1.0);',
+            '  vPosition = gl_Position.xyz;',
+            '  vViewDir = (uViewTransform * vec4(0.0, 0.0, 1.0, 0.0)).xyz;',
             '}');
 
         return lines.join('\n');

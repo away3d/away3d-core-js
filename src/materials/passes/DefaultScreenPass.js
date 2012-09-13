@@ -73,6 +73,7 @@ function()
 
         code.push.apply(code, [
             'void main(void) {',
+            '  initLights();',
             '  vec4 tmp;',
             '  ambient(tmp);'
         ]);
