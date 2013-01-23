@@ -238,7 +238,7 @@ function()
         var asset = new away3d.Geometry();
         asset.$.vertexData = msg.data.vertexData;
         asset.$.indexData = msg.data.indexData;
-        asset.$.normalData = msg.data.normalData;
+        asset.$.vertexNormalData = msg.data.normalData;
         asset.$.colorData = msg.data.colorData;
         asset.$.uvData = msg.data.uvData;
 
