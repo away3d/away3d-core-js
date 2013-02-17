@@ -1,6 +1,8 @@
 away3d.module('away3d.WebGLRenderer', null,
 function()
 {
+    var nextMaterialId = 1;
+
     var WebGLRenderer = function(canvas)
     {
         this.canvas = canvas;
@@ -15,6 +17,8 @@ function()
 
         var renderables = []
         scene.traverse(renderables);
+
+        renderables.sort(sortOnMaterial);
 
         gl.viewport(0, 0, view.$.width, view.$.height);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -38,6 +42,17 @@ function()
 
             mtl.deactivate(gl);
         }
+    };
+
+    var sortOnMaterial = function(r0, r1) 
+    {
+        if (!r0.material.id)
+            r0.material.id = nextMaterialId++;
+
+        if (!r1.material.id)
+            r1.material.id = nextMaterialId++;
+
+        return (r0.material.id - r1.material.id);
     };
 
     return WebGLRenderer;
