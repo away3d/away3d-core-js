@@ -14,8 +14,8 @@ function()
     BasicDiffuseMethod.prototype.getFragmentCode = function(util)
     {
         return [
-            'float diffuse = dot(normalize(vNormal), lights[0].xyz);',
-            'outColor = 0.5 * vec4(diffuse, diffuse, diffuse, 1.0) + inColor;'
+            'float diffuse = abs(dot(normalize(vNormal), lights[0].xyz));',
+            'outColor = inColor * 0.5 + 0.5 * inColor * vec4(diffuse, diffuse, diffuse, 1.0);'
         ];
     };
 
