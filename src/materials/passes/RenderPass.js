@@ -14,6 +14,7 @@ function()
             needsUvs: false,
             needsVertexColors: false,
             needsVertexNormals: false,
+            needsWorldPosition: true,
             numSamplersNeeded: 0
         };
     };
@@ -154,6 +155,7 @@ function()
         if (this.$.needsUvs) lines.push('varying vec2 vTexCoord;');
         if (this.$.needsVertexColors) lines.push('varying vec3 vColor;');
         if (this.$.needsVertexNormals) lines.push('varying vec3 vNormal;');
+        if (this.$.needsWorldPosition) lines.push('varying vec3 vWorldPos;');
 
         for (i=0; i<this.$.numSamplersNeeded; i++) {
             lines.push('uniform sampler2D uTexture'+i+';');
@@ -220,6 +222,11 @@ function()
                 'attribute vec3 aVertexColor;',
                 'varying vec3 vColor;');
             body.push('  vColor = aVertexColor;');
+        }
+
+        if (this.$.needsWorldPosition) {
+            header.push('varying vec3 vWorldPos;');
+            body.push('  vWorldPos = (uTransform * vec4(aVertexPosition, 1.0)).xyz;');
         }
 
         lines = [];

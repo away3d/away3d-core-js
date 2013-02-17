@@ -44,6 +44,7 @@ function()
             this.$.needsUvs = this.$.needsUvs || methods[i].needsUvs;
             this.$.needsVertexColors = this.$.needsVertexColors || methods[i].needsVertexColors;
             this.$.needsVertexNormals = this.$.needsVertexNormals || methods[i].needsVertexNormals;
+            this.$.needsWorldPosition = this.$.needsWorldPosition || methods[i].needsWorldPosition;
             this.$.numSamplersNeeded += (methods[i].numSamplersNeeded || 0);
         }
 
