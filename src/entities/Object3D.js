@@ -196,8 +196,21 @@ function()
 
     Object3D.prototype.appendChild = function(child)
     {
+        if (child.parent) {
+            child.parent.removeChild(child);
+        }
+
         child.parent = this;
         this.children.push(child);
+    };
+
+    Object3D.prototype.removeChild = function(child)
+    {
+        var idx = this.children.indexOf(child);
+        if (idx >= 0) {
+            this.children.splice(idx, 1);
+            child.parent = null;
+        }
     };
 
     Object3D.prototype.traverse = function(objects)
