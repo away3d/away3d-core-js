@@ -252,6 +252,7 @@ function()
         asset.$.vertexNormalData = msg.data.normalData;
         asset.$.colorData = msg.data.colorData;
         asset.$.uvData = msg.data.uvData;
+        asset.name = msg.data.name;
 
         return asset;
     };
@@ -265,13 +266,12 @@ function()
             asset;
             
         asset = new away3d.Mesh(geom, mtl);
+        asset.name = msg.data.name;
         asset.transform = new away3d.Matrix3D(msg.data.transform);
 
         if (par) {
             par.appendChild(asset);
         }
-
-        // TODO: Implement transform matrix
 
         return asset;
     };
@@ -285,8 +285,7 @@ function()
             var tex = resolveAsset(msg.data.texture, finalizedAssets);
 
             asset.addMethod(new away3d.TextureMethod(tex));
-        }
-        else {
+
         }
 
         return asset;
