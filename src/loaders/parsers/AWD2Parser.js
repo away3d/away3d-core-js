@@ -82,9 +82,8 @@ function()
 
     var parseVarStr = function(self)
     {
-        // TODO: Read string
-        self.seek(self.readUint16());
-        return '';
+        var len = self.readUint16();
+        return self.readString(len);
     };
 
     var parseMatrix3D = function(self)
