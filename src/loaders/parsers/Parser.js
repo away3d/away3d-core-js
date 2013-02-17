@@ -232,6 +232,17 @@ function()
         return this.$.data.getFloat64((this.$.offset += 8) - 8, true);
     };
 
+    Parser.prototype.readString = function(len)
+    {
+        var i, unicode = [];
+
+        for (i=0; i<len; i++) {
+            unicode.push(this.readUint8());
+        }
+
+        return String.fromCharCode.apply(null, unicode);
+    };
+
 
     var finalizeGeometry = function(msg)
     {
