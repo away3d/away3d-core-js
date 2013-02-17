@@ -175,7 +175,7 @@ function()
             var light = this.$.material.lights[i];
             lines.push(
                 // TODO: Use scene position
-                '  lights['+i+'] = vec4(normalize(uLights['+i+'].xyz - vPosition), uLights['+i+'].w);'
+                '  lights['+i+'] = vec4(normalize(uLights['+i+'].xyz - vWorldPos), uLights['+i+'].w);'
             );
         }
         lines.push('}');
