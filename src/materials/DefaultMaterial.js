@@ -17,6 +17,8 @@ function()
     DefaultMaterial.prototype.addMethod = function(method)
     {
         this.$.methods.push(method);
+        this.$.screenPass.$.fragmentShaderDirty = true;
+        this.$.screenPass.$.vertexShaderDirty = true;
     };
 
 
