@@ -15,7 +15,9 @@ function()
             needsVertexColors: false,
             needsVertexNormals: false,
             needsWorldPosition: true,
-            numSamplersNeeded: 0
+            numSamplersNeeded: 0,
+            prevTime: 0,
+            time: 0
         };
     };
 
@@ -53,6 +55,7 @@ function()
 
         program.uTransform = gl.getUniformLocation(program, 'uTransform');
         program.uCameraPosition = gl.getUniformLocation(program, 'uCameraPosition');
+
         program.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
         program.aVertexNormal = gl.getAttribLocation(program, 'aVertexNormal');
         program.aVertexColor = gl.getAttribLocation(program, 'aVertexColor');
@@ -91,6 +94,20 @@ function()
                 this.$.material.lights[i].y,
                 this.$.material.lights[i].z,
                 1.0);
+        }
+
+        if (this.$.needsTime) {
+            var uTime, t = (new Date()).getTime();
+            if (!this.$.prevTime) {
+                this.$.prevTime = (new Date()).getTime();
+            }
+
+            this.$.time += 0.001 * (t - this.$.prevTime);
+            this.$.prevTime = t;
+
+            // TODO: Cache uniform location?
+            uTime = gl.getUniformLocation(this.$.program, 'time');
+            gl.uniform1f(uTime, this.$.time);
         }
     };
 
@@ -156,6 +173,7 @@ function()
         if (this.$.needsVertexColors) lines.push('varying vec3 vColor;');
         if (this.$.needsVertexNormals) lines.push('varying vec3 vNormal;');
         if (this.$.needsWorldPosition) lines.push('varying vec3 vWorldPos;');
+        if (this.$.needsTime) lines.push('uniform float time;');
 
         for (i=0; i<this.$.numSamplersNeeded; i++) {
             lines.push('uniform sampler2D uTexture'+i+';');

@@ -45,6 +45,8 @@ function()
             this.$.needsVertexColors = this.$.needsVertexColors || methods[i].needsVertexColors;
             this.$.needsVertexNormals = this.$.needsVertexNormals || methods[i].needsVertexNormals;
             this.$.needsWorldPosition = this.$.needsWorldPosition || methods[i].needsWorldPosition;
+            this.$.needsTime = this.$.needsTime || methods[i].needsTime;
+
             this.$.numSamplersNeeded += (methods[i].numSamplersNeeded || 0);
         }
 
