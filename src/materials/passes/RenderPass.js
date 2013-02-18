@@ -23,7 +23,7 @@ function()
     var updateProgram = function(self, gl)
     {
         var i, numLights,
-            program = self.$.program || gl.createProgram();
+            program = gl.createProgram();
 
         if (self.$.fragmentShaderDirty) {
             var fs = self.$.fragmentShader || gl.createShader(gl.FRAGMENT_SHADER);
